@@ -21,8 +21,11 @@ func main() {
 
 	var result []DataSales
 
-	concurrentWork := true
 
+	
+
+
+	concurrentWork := true
 	if !concurrentWork {
 		result, err = nonConcurrentMethod(file)
 		if err != nil {
