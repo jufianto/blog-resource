@@ -1,13 +1,29 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jufianto/blog-resource/big-files-processing/store"
+	"github.com/spf13/viper"
 )
+
+func init() {
+	viper.SetConfigFile("env/env.yaml")
+	viper.SetConfigType("yaml")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("viper config not found: %v", err)
+	}
+
+}
 
 func main() {
 
@@ -21,21 +37,63 @@ func main() {
 
 	var result []DataSales
 
+	// concurrentWork := true
+	// if !concurrentWork {
+	// 	result, err = nonConcurrentMethod(file)
+	// 	if err != nil {
+	// 		log.Fatal("error", err)
+	// 	}
+	// } else {
+	// 	result, err = concurrentMethod(file)
+	// 	if err != nil {
+	// 		log.Fatal("error", err)
+	// 	}
+	// }
 
-	
+	// test databases
+	sqlConnStr := fmt.Sprintf(`postgres://%s:%s@%s:%s/%s?sslmode=disable`,
+		viper.GetString("database.user"),
+		viper.GetString("database.password"),
+		viper.GetString("database.host"),
+		viper.GetString("database.port"),
+		viper.GetString("database.dbname"),
+	)
 
+	ctx := context.Background()
 
-	concurrentWork := true
-	if !concurrentWork {
-		result, err = nonConcurrentMethod(file)
-		if err != nil {
-			log.Fatal("error", err)
-		}
-	} else {
-		result, err = concurrentMethod(file)
-		if err != nil {
-			log.Fatal("error", err)
-		}
+	configPool, err := pgxpool.ParseConfig(sqlConnStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pool, err := pgxpool.NewWithConfig(ctx, configPool)
+	if err != nil {
+		log.Fatalf("failed to fetch pool connection: %v \n", err)
+	}
+	defer pool.Close()
+
+	storedb := store.NewStore(pool)
+
+	id := uuid.New()
+
+	if err := storedb.InsertSales(ctx, store.DataSales{
+		Region:        "Asia",
+		ID:            id,
+		Country:       "ID",
+		ItemType:      "ONL",
+		SalesChannel:  "ONL",
+		OrderPriority: "H",
+		OrderDate:     time.Now(),
+		OrderID:       fmt.Sprintf("%d", time.Now().Unix()),
+		ShipDate:      time.Now().Add(24 * time.Hour),
+		UnitSold:      100,
+		UnitPrice:     100000,
+		UnitCost:      120000,
+		TotalRevenue:  900000,
+		TotalCost:     800000,
+		TotalProfit:   700000,
+	}); err != nil {
+		log.Fatalf("err insert: %v", err)
 	}
 
 	fmt.Println("total data", len(result))

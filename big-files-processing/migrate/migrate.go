@@ -40,7 +40,7 @@ func main() {
 	}
 
 	conn, err := sql.Open("pgx", sqlConnStr)
-	if err != nil {
+	if err != nil{
 		log.Fatalf("failed to open connection: %v", err)
 	}
 	defer conn.Close()
