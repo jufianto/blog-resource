@@ -2,7 +2,7 @@ package store
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,17 +45,18 @@ func (s *Store) InsertSales(ctx context.Context, sales DataSales) error {
 
 	conn, err := s.pool.Acquire(ctx)
 	if err != nil {
+		log.Println("error get pool", err)
 		return err
 	}
 	defer conn.Release()
 
-	query := `INSERt into transactions 
+	query := `INSERT into transactions 
 		(id, region, country, item_type, sales_channel, 
 		order_priority, order_date, order_id, ship_date, units_sold, 
 		unit_price, unit_cost, total_revenue, total_cost, total_profit) 
 			values ($1, $2, $3, $4, $5, $6, $7, $8, $9,$10, $11, $12, $13,$14,$15)`
 
-	ct, err := s.pool.Exec(
+	_, err = conn.Exec(
 		ctx, query,
 		sales.ID,
 		sales.Region,
@@ -74,9 +75,8 @@ func (s *Store) InsertSales(ctx context.Context, sales DataSales) error {
 		sales.TotalProfit,
 	)
 	if err != nil {
+		log.Println("error from db", err)
 		return err
 	}
-
-	fmt.Println("ct", ct)
 	return nil
 }

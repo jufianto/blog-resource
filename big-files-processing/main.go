@@ -6,10 +6,10 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jufianto/blog-resource/big-files-processing/store"
 	"github.com/spf13/viper"
@@ -25,8 +25,12 @@ func init() {
 
 }
 
-func main() {
+var (
+	worker = 30
+	sep    = 100
+)
 
+func main() {
 	start := time.Now()
 
 	file, err := os.Open("../resource/sales_5000000.csv")
@@ -34,21 +38,6 @@ func main() {
 		log.Fatal("failed to open ", err)
 	}
 	defer file.Close()
-
-	var result []DataSales
-
-	// concurrentWork := true
-	// if !concurrentWork {
-	// 	result, err = nonConcurrentMethod(file)
-	// 	if err != nil {
-	// 		log.Fatal("error", err)
-	// 	}
-	// } else {
-	// 	result, err = concurrentMethod(file)
-	// 	if err != nil {
-	// 		log.Fatal("error", err)
-	// 	}
-	// }
 
 	// test databases
 	sqlConnStr := fmt.Sprintf(`postgres://%s:%s@%s:%s/%s?sslmode=disable`,
@@ -66,6 +55,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Println("runtime", runtime.NumCPU())
+
+	configPool.MaxConns = 60
+	configPool.MaxConnIdleTime = 20 * time.Second
+	configPool.MinConns = 10
+
 	pool, err := pgxpool.NewWithConfig(ctx, configPool)
 	if err != nil {
 		log.Fatalf("failed to fetch pool connection: %v \n", err)
@@ -74,31 +69,26 @@ func main() {
 
 	storedb := store.NewStore(pool)
 
-	id := uuid.New()
+	limit := 10000
 
-	if err := storedb.InsertSales(ctx, store.DataSales{
-		Region:        "Asia",
-		ID:            id,
-		Country:       "ID",
-		ItemType:      "ONL",
-		SalesChannel:  "ONL",
-		OrderPriority: "H",
-		OrderDate:     time.Now(),
-		OrderID:       fmt.Sprintf("%d", time.Now().Unix()),
-		ShipDate:      time.Now().Add(24 * time.Hour),
-		UnitSold:      100,
-		UnitPrice:     100000,
-		UnitCost:      120000,
-		TotalRevenue:  900000,
-		TotalCost:     800000,
-		TotalProfit:   700000,
-	}); err != nil {
-		log.Fatalf("err insert: %v", err)
+	concurrentWork := true
+	totalInserted := 0
+
+	if !concurrentWork {
+		totalInserted, err = nonConcurrentMethod(file, limit, storedb)
+		if err != nil {
+			log.Fatal("error", err)
+		}
+	} else {
+		totalInserted, err = concurrentMethod(ctx, file, limit, storedb)
+		if err != nil {
+			log.Fatal("error", err)
+		}
 	}
 
-	fmt.Println("total data", len(result))
+	fmt.Println("total inserted", totalInserted)
 
-	fmt.Printf("end in %d ms \n", time.Since(start).Milliseconds())
+	fmt.Printf("end in %2f seconds \n", time.Since(start).Seconds())
 }
 
 type DataSales struct {
@@ -118,21 +108,21 @@ type DataSales struct {
 	TotalProfit   float64
 }
 
-func nonConcurrentMethod(file io.Reader) ([]DataSales, error) {
+func nonConcurrentMethod(file io.Reader, limit int, store store.StoreInterface) (int, error) {
 	log.Println("starting with non-concurrent method")
-	data, err := SingleReadCSV(file, 100)
+	data, err := SingleReadCSV(file, limit, store)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	return data, nil
 }
 
-func concurrentMethod(file io.Reader) ([]DataSales, error) {
+func concurrentMethod(ctx context.Context, file io.Reader, limit int, storedb store.StoreInterface) (int, error) {
 	log.Println("starting with concurrent method")
 
-	data, err := ReadWithConcurrent(file)
+	data, err := ReadWithConcurrent(ctx, file, limit, storedb)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	return data, nil
@@ -176,8 +166,6 @@ func getResult(record []string) (DataSales, error) {
 	if err != nil {
 		return DataSales{}, err
 	}
-
-	time.Sleep(5 * time.Millisecond)
 
 	sales := DataSales{
 		Region:        record[0],

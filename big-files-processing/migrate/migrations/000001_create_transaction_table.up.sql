@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS transactions (
-    id varchar(36),
+    id varchar(36) PRIMARY KEY,
     region VARCHAR(100),
     country VARCHAR(100),
     item_type VARCHAR(100),
