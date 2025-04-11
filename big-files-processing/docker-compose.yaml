@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: bgp-transactions
+    restart: on-failure
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bgp-transactions
+    ports:
+      - "5411:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    mem_limit: 512m
+    cpus: 1
+
+volumes:
+  postgres_data:

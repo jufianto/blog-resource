@@ -27,7 +27,7 @@ func init() {
 
 var (
 	worker = 30
-	sep    = 100
+	sep    = 1000
 )
 
 func main() {
@@ -69,7 +69,7 @@ func main() {
 
 	storedb := store.NewStore(pool)
 
-	limit := 10000
+	limit := 400000
 
 	concurrentWork := true
 	totalInserted := 0
