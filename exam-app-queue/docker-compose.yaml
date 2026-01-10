@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: exam-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: exam_app
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Resource limits to simulate real server (not M4 Pro power)
+    mem_limit: 512m           # Only 512MB RAM
+    mem_reservation: 256m     # Reserve at least 256MB
+    cpus: 0.5                 # Only 1 CPU core
+    shm_size: 128mb
+    command: >
+      postgres
+      -c max_connections=100
+      -c shared_buffers=128MB
+      -c effective_cache_size=256MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=2MB
+      -c min_wal_size=1GB
+      -c max_wal_size=2GB
+
+  nats:
+    image: nats:latest
+    container_name: exam-nats
+    command: "-js -sd /data -m 8222"  # Enable JetStream with file storage + monitoring
+    ports:
+      - "4222:4222"  # Client connections
+      - "8222:8222"  # HTTP monitoring endpoint
+    volumes:
+      - nats_data:/data
+    # Resource limits
+    mem_limit: 256m           # Only 256MB RAM
+    mem_reservation: 128m
+    cpus: 0.5                 # Only 0.5 CPU core
+
+volumes:
+  postgres_data:
+  nats_data:
