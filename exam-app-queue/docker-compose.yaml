@@ -45,6 +45,16 @@ services:
     mem_reservation: 128m
     cpus: 0.5                 # Only 0.5 CPU core
 
+  nats-surveyor:
+    image: natsio/nats-surveyor:latest
+    container_name: exam-nats-ui
+    ports:
+      - "7777:7777"  # Web UI
+    environment:
+      NATS_SURVEYOR_SERVERS: "http://exam-nats:8222"
+    depends_on:
+      - nats
+
 volumes:
   postgres_data:
   nats_data:

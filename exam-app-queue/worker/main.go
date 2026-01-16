@@ -60,7 +60,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Connection pool settings - should accommodate all workers
+	// Connection pool settings
 	configPool.MaxConns = int32(workerCount + 5)
 	configPool.MaxConnIdleTime = 30 * time.Second
 	configPool.MinConns = int32(workerCount / 2)
@@ -105,8 +105,8 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	<-sigChan
 
-	cancel() // Signal all workers to stop
 	log.Println("Shutting down workers...")
+	cancel()
 	wg.Wait()
 	log.Println("All workers stopped")
 }
@@ -116,127 +116,92 @@ func worker(ctx context.Context, js nats.JetStreamContext, workerID int, wg *syn
 
 	log.Printf("Worker %d started", workerID)
 
-	// ALL workers share the SAME consumer for work distribution
-	sub, err := js.PullSubscribe("exam.submit", "exam-workers", nats.ManualAck())
+	// ALL workers share the SAME consumer with increased ack pending limit
+	sub, err := js.PullSubscribe("exam.submit", "exam-workers",
+		nats.ManualAck(),
+		nats.MaxAckPending(20000), // Allow up to 20,000 unacked messages
+	)
 	if err != nil {
 		log.Fatalf("Worker %d failed to subscribe: %v", workerID, err)
 	}
 	defer sub.Unsubscribe()
 
-	batch := make([]store.ExamSubmission, 0, batchSize)
-	batchMsgs := make([]*nats.Msg, 0, batchSize) // Track messages for acking
-	ticker := time.NewTicker(2 * time.Second)    // Flush batch every 2 seconds
-	defer ticker.Stop()
-
 	processed := 0
 
 	for {
+		// Check if we should stop
 		select {
 		case <-ctx.Done():
-			// Flush remaining batch before stopping
-			if len(batch) > 0 {
-				if processBatch(ctx, batch, workerID) {
-					for _, msg := range batchMsgs {
-						msg.Ack()
-					}
-				} else {
-					for _, msg := range batchMsgs {
-						msg.Nak()
-					}
-				}
-			}
 			log.Printf("Worker %d stopped. Total processed: %d", workerID, processed)
 			return
+		default:
+		}
 
-		case <-ticker.C:
-			// Periodic flush
-			if len(batch) > 0 {
-				if processBatch(ctx, batch, workerID) {
-					// Ack all messages
-					for _, msg := range batchMsgs {
-						msg.Ack()
-					}
-					processed += len(batch)
-				} else {
-					// Nak all messages to retry
-					for _, msg := range batchMsgs {
-						msg.Nak()
-					}
-				}
-				batch = batch[:0]
-				batchMsgs = batchMsgs[:0]
+		// Fetch a batch of messages (blocks up to 500ms)
+		msgs, err := sub.Fetch(batchSize, nats.MaxWait(1000*time.Millisecond))
+		if err != nil {
+			if err == nats.ErrTimeout {
+				// No messages, wait a bit and try again
+				time.Sleep(100 * time.Millisecond)
+				continue
 			}
+			log.Printf("Worker %d fetch error: %v", workerID, err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
 
-			// After ticker, try to fetch messages
-			msgs, err := sub.Fetch(batchSize, nats.MaxWait(100*time.Millisecond))
-			if err != nil {
-				if err != nats.ErrTimeout {
-					log.Printf("Worker %d fetch error: %v", workerID, err)
-				}
+		log.Printf("Worker %d fetched %d messages", workerID, len(msgs))
+
+		// Build batch of submissions
+		batch := make([]store.ExamSubmission, 0, len(msgs))
+		validMsgs := make([]*nats.Msg, 0, len(msgs))
+
+		for _, msg := range msgs {
+			var submission store.ExamSubmission
+			if err := json.Unmarshal(msg.Data, &submission); err != nil {
+				log.Printf("Worker %d failed to unmarshal: %v", workerID, err)
+				msg.Nak()
 				continue
 			}
 
-			for _, msg := range msgs {
-				// Check context before processing
-				select {
-				case <-ctx.Done():
+			// Update status
+			submission.Status = "processed"
+			now := time.Now()
+			submission.ProcessedAt = &now
+
+			batch = append(batch, submission)
+			validMsgs = append(validMsgs, msg)
+		}
+
+		// Process the batch
+		if len(batch) > 0 {
+			start := time.Now()
+			err := db.BatchInsertSubmissions(ctx, batch)
+			duration := time.Since(start)
+
+			if err != nil {
+				log.Printf("Worker %d failed to insert batch of %d: %v", workerID, len(batch), err)
+				// NAK all messages for retry
+				for _, msg := range validMsgs {
 					msg.Nak()
-					return
-				default:
 				}
-
-				var submission store.ExamSubmission
-				if err := json.Unmarshal(msg.Data, &submission); err != nil {
-					log.Printf("Worker %d failed to unmarshal: %v", workerID, err)
-					msg.Nak()
-					continue
-				}
-
-				// Update status to processing
-				submission.Status = "processed"
-				now := time.Now()
-				submission.ProcessedAt = &now
-
-				batch = append(batch, submission)
-				batchMsgs = append(batchMsgs, msg)
-
-				// If batch is full, process it
-				if len(batch) >= batchSize {
-					if processBatch(ctx, batch, workerID) {
-						// Ack all messages in batch
-						for _, m := range batchMsgs {
-							m.Ack()
-						}
-						processed += len(batch)
-					} else {
-						// Nak all messages to retry
-						for _, m := range batchMsgs {
-							m.Nak()
-						}
+			} else {
+				log.Printf("Worker %d processed batch of %d in %v", workerID, len(batch), duration)
+				// ACK all messages - SUCCESS!
+				ackErrors := 0
+				for i, msg := range validMsgs {
+					if err := msg.Ack(); err != nil {
+						log.Printf("Worker %d ACK error for message %d: %v", workerID, i, err)
+						ackErrors++
 					}
-					batch = batch[:0]
-					batchMsgs = batchMsgs[:0]
-					break
 				}
+				if ackErrors == 0 {
+					log.Printf("Worker %d successfully ACK'd %d messages", workerID, len(validMsgs))
+				} else {
+					log.Printf("Worker %d had %d ACK errors out of %d messages", workerID, ackErrors, len(validMsgs))
+				}
+				processed += len(batch)
 			}
 		}
 	}
-}
-
-func processBatch(ctx context.Context, batch []store.ExamSubmission, workerID int) bool {
-	if len(batch) == 0 {
-		return true
-	}
-
-	start := time.Now()
-	err := db.BatchInsertSubmissions(ctx, batch)
-	duration := time.Since(start)
-
-	if err != nil {
-		log.Printf("Worker %d failed to insert batch of %d: %v", workerID, len(batch), err)
-		return false
-	}
-
-	log.Printf("Worker %d processed batch of %d in %v", workerID, len(batch), duration)
-	return true
 }
