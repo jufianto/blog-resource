@@ -18,6 +18,28 @@ go.work
 
 # Environment files
 env/env.yaml
+myenv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+myenv/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
 # IDE
 .vscode/

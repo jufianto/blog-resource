@@ -111,11 +111,26 @@ func (s *Store) BatchInsertSubmissions(ctx context.Context, submissions []ExamSu
 	br := conn.SendBatch(ctx, batch)
 	defer br.Close()
 
+	inserted := 0
+	skipped := 0
+
 	for i := 0; i < len(submissions); i++ {
-		_, err := br.Exec()
+		cmdTag, err := br.Exec()
 		if err != nil {
 			log.Printf("error in batch insert at index %d: %v", i, err)
+			continue
 		}
+
+		// Check if row was actually inserted
+		if cmdTag.RowsAffected() > 0 {
+			inserted++
+		} else {
+			skipped++
+		}
+	}
+
+	if skipped > 0 {
+		log.Printf("Batch insert: %d inserted, %d skipped (duplicates)", inserted, skipped)
 	}
 
 	return nil

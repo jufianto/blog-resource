@@ -1,6 +1,6 @@
 # Makefile for Exam App Queue Project
 
-.PHONY: help setup start-infra migrate-up migrate-down run-direct run-queue run-worker test-direct test-queue clean
+.PHONY: help setup start-infra migrate-up migrate-down run-direct run-queue run-worker test-direct test-queue test-direct-monitored test-queue-monitored clean analyze-results
 
 help:
 	@echo "Exam App Queue - Available Commands"
@@ -17,8 +17,11 @@ help:
 	@echo "  make run-worker     - Start background workers"
 	@echo ""
 	@echo "Load Testing:"
-	@echo "  make test-direct    - Run k6 load test on direct approach"
-	@echo "  make test-queue     - Run k6 load test on queue approach"
+	@echo "  make test-direct           - Run k6 load test on direct approach"
+	@echo "  make test-queue            - Run k6 load test on queue approach"
+	@echo "  make test-direct-monitored - Run direct test with resource monitoring"
+	@echo "  make test-queue-monitored  - Run queue test with resource monitoring"
+	@echo "  make analyze-results       - Generate comparison report"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make logs           - View all container logs"
@@ -64,6 +67,33 @@ test-direct:
 
 test-queue:
 	@echo "Running load test on Queue approach..."
+test-direct-monitored:
+	@echo "🔍 Running Direct approach test with monitoring..."
+	@echo "Starting resource monitoring in background..."
+	@./monitor-resources.sh direct 310 &
+	@MONITOR_PID=$$!; \
+	sleep 2; \
+	echo "Running k6 load test..."; \
+	cd load-test && k6 run test_direct.js; \
+	wait $$MONITOR_PID; \
+	echo "✅ Test complete! Check load-test/results/direct_resources.csv"
+
+test-queue-monitored:
+	@echo "🔍 Running Queue approach test with monitoring..."
+	@echo "Make sure workers are running!"
+	@echo "Starting resource monitoring in background..."
+	@./monitor-resources.sh queue 310 &
+	@MONITOR_PID=$$!; \
+	sleep 2; \
+	echo "Running k6 load test..."; \
+	cd load-test && k6 run test_queue.js; \
+	wait $$MONITOR_PID; \
+	echo "✅ Test complete! Check load-test/results/queue_resources.csv"
+
+analyze-results:
+	@echo "📊 Analyzing test results..."
+	@python3 analyze-results.py
+
 	@echo "Make sure api/queue AND workers are running!"
 	cd load-test && k6 run test_queue.js
 
