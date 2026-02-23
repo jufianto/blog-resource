@@ -118,14 +118,14 @@ func handleSubmit(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:   time.Now(),
 	}
 
-	// Publish to NATS (non-blocking, fast)
+	// Publish to NATS with confirmation (500ms timeout for data safety)
 	data, err := json.Marshal(submission)
 	if err != nil {
 		http.Error(w, "Failed to encode submission", http.StatusInternalServerError)
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 
 	_, err = js.Publish("exam.submit", data, nats.Context(ctx))

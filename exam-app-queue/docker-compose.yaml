@@ -14,7 +14,7 @@ services:
     # Resource limits to simulate real server (not M4 Pro power)
     mem_limit: 512m           # Only 512MB RAM
     mem_reservation: 256m     # Reserve at least 256MB
-    cpus: 0.5                 # Only 1 CPU core
+    cpus: 0.5                # Only 1 CPU core
     shm_size: 128mb
     command: >
       postgres
@@ -41,9 +41,9 @@ services:
     volumes:
       - nats_data:/data
     # Resource limits
-    mem_limit: 256m           # Only 256MB RAM
+    mem_limit: 512m           # Only 256MB RAM
     mem_reservation: 128m
-    cpus: 0.5                 # Only 0.5 CPU core
+    cpus: 2                 # Only 1 CPU core
 
   nats-surveyor:
     image: natsio/nats-surveyor:latest

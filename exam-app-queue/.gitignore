@@ -66,3 +66,7 @@ load-test/results/*.txt
 
 # Docker
 docker-compose.override.yml
+
+# Blog drafts (not part of the project)
+blog_draft*.md
+blog_context.md

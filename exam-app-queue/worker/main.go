@@ -137,7 +137,7 @@ func worker(ctx context.Context, js nats.JetStreamContext, workerID int, wg *syn
 		default:
 		}
 
-		// Fetch a batch of messages (blocks up to 500ms)
+		// Fetch a batch of messages (blocks up to 1000ms)
 		msgs, err := sub.Fetch(batchSize, nats.MaxWait(1000*time.Millisecond))
 		if err != nil {
 			if err == nats.ErrTimeout {
