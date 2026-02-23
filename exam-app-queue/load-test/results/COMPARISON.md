@@ -11,20 +11,20 @@
 
 | Metric | Direct Approach | Queue Approach | Difference |
 |--------|----------------|----------------|------------|
-| **Avg CPU** | 26.97% | 11.25% | -15.73% |
-| **Max CPU** | 51.05% | 32.56% | -18.49% |
+| **Avg CPU** | 26.97% | 12.09% | -14.88% |
+| **Max CPU** | 51.05% | 42.69% | -8.36% |
 | **Avg Memory** | 197 MB | 198 MB | +1 MB |
-| **Max Memory** | 294 MB | 220 MB | -74 MB |
-| **Avg Mem %** | 38.41% | 38.70% | +0.28% |
+| **Max Memory** | 294 MB | 223 MB | -71 MB |
+| **Avg Mem %** | 38.41% | 38.67% | +0.26% |
 
 ### NATS (exam-nats) - Queue Only
 
 | Metric | Value |
 |--------|-------|
-| **Avg CPU** | 33.60% |
-| **Max CPU** | 121.85% |
+| **Avg CPU** | 43.57% |
+| **Max CPU** | 92.52% |
 | **Avg Memory** | 30 MB |
-| **Max Memory** | 46 MB |
+| **Max Memory** | 42 MB |
 
 ## 🎯 Key Insights
 
