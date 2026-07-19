@@ -1,0 +1,15 @@
+version: '3.7'
+
+services:
+  hydra:
+    image: oryd/hydra:v2.2.0
+    ports:
+      - "4444:4444" # Public API
+      - "4445:4445" # Admin API
+    command: serve all --dev
+    environment:
+      - SECRETS_SYSTEM=super-secret-system-key-change-me
+      - DSN=memory
+      - URLS_SELF_ISSUER=http://127.0.0.1:4444
+      - URLS_CONSENT=http://127.0.0.1:8080/consent
+      - URLS_LOGIN=http://127.0.0.1:8080/login

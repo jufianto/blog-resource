@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant Attacker
+    participant Client as Legit Client
+    participant API as Resource Server API
+
+    rect rgb(255, 245, 245)
+    Note over Attacker,API: Bearer token replay
+    Client->>API: API request<br/>Authorization: Bearer access_token
+    Attacker->>Attacker: Steals bearer access_token
+    Attacker->>API: Replays request<br/>Authorization: Bearer stolen token
+    API->>Attacker: May accept if token is valid<br/>and no sender constraint exists
+    end
+
+    rect rgb(245, 250, 255)
+    Note over Attacker,API: DPoP-protected token
+    Client->>API: API request<br/>Authorization: DPoP-bound access_token<br/>DPoP proof signed with client's private key
+    Attacker->>Attacker: Steals access_token only
+    Attacker->>API: Replays token without valid DPoP proof
+    API->>Attacker: Rejects request<br/>proof does not match token binding
+    end

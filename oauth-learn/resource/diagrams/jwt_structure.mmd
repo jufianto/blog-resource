@@ -1,0 +1,17 @@
+flowchart LR
+    JWT["JWT"]
+    Header["Header<br/>alg, typ, kid"]
+    Payload["Payload / Claims<br/>iss, sub, aud, exp,<br/>iat, nbf, jti, scope"]
+    Signature["Signature<br/>proves integrity<br/>when verified"]
+
+    JWT --> Header
+    JWT --> Payload
+    JWT --> Signature
+
+    Header --> EncHeader["Base64url encoded"]
+    Payload --> EncPayload["Base64url encoded"]
+    Signature --> EncSignature["Base64url encoded"]
+
+    EncHeader --> Compact["header.payload.signature"]
+    EncPayload --> Compact
+    EncSignature --> Compact

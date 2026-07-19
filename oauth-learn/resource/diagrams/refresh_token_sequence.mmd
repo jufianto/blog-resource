@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant Client as Client App
+    participant AS as Authorization Server
+    participant API as Resource Server API
+
+    Client->>API: API request with access token
+    API->>Client: 401 Unauthorized<br/>access token expired
+    Client->>AS: POST /token<br/>grant_type=refresh_token<br/>refresh_token=RT1
+    AS->>AS: Validate refresh token<br/>and rotation policy
+    AS->>Client: New access_token<br/>new refresh_token=RT2
+    AS->>AS: Mark RT1 as used/replaced
+    Client->>API: Retry API request<br/>Authorization: Bearer new access token
+    API->>Client: Protected response
+    Note over AS: If RT1 is reused later,<br/>detect possible theft and revoke token family

@@ -2,3 +2,12 @@ resource/*
 */env/env.yaml
 .DS_Store
 .vscode
+
+# Local-only agent instructions — keep out of the public repo
+CLAUDE.md
+**/CLAUDE.md
+
+# Go build artifacts from the demo labs
+oauth-learn/resource/labs/**/tmp/
+oauth-learn/resource/labs/day1-go-oauth-demo/day1-demo
+oauth-learn/resource/labs/day1-go-oauth-demo/day1-go-oauth-demo

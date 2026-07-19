@@ -15,7 +15,7 @@ A comprehensive guide to understanding PostgreSQL configuration for resource-con
 
 ## Critical Memory Configurations
 
-These settings directly control PostgreSQL's memory usage and must be carefully tuned for servers with limited RAM.
+These settings directly control PostgreSQL's memory usage and must be carefully tuned for servers with limited RAM.asdsadsadsa
 
 ### 1. `shared_buffers` - PostgreSQL Cache
 

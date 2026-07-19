@@ -1,0 +1,10 @@
+flowchart TD
+    RO["Resource Owner<br/>User"]
+    C["Client App<br/>wants access"]
+    AS["Authorization Server<br/>login, consent, token"]
+    RS["Resource Server<br/>protected API"]
+
+    C -->|"1. Redirect user for permission"| RO
+    RO -->|"2. Login and approve access"| AS
+    AS -->|"3. Issue access token"| C
+    C -->|"4. Use access token"| RS

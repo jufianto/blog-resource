@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    participant AS as Authorization Server
+    participant JWKS as JWKS Endpoint
+    participant API as Resource Server API
+    participant Client as Client App
+
+    AS->>JWKS: Publish old key kid=old
+    AS->>Client: Issue token signed with kid=old
+    Client->>API: API request with token kid=old
+    API->>JWKS: Fetch JWKS
+    JWKS->>API: Return public key kid=old
+    API->>API: Verify token signature
+    AS->>JWKS: Publish old key and new key kid=new
+    AS->>Client: Issue new tokens signed with kid=new
+    Client->>API: API request with token kid=new
+    API->>JWKS: Refresh JWKS if kid is unknown
+    JWKS->>API: Return keys kid=old and kid=new
+    API->>API: Verify token with kid=new
+    AS->>JWKS: After old tokens expire,<br/>remove kid=old

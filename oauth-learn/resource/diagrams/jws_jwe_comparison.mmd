@@ -1,0 +1,14 @@
+flowchart TD
+    Claims["JWT claims<br/>iss, sub, aud, exp, scope"]
+
+    Claims --> JWS["JWS: signed token"]
+    Claims --> JWE["JWE: encrypted token"]
+
+    JWS --> Readable["Payload is readable<br/>by anyone holding the token"]
+    JWS --> Integrity["Signature proves<br/>content was not modified<br/>and signer is trusted"]
+
+    JWE --> Hidden["Payload is hidden<br/>from parties without decryption key"]
+    JWE --> Confidentiality["Encryption provides<br/>confidentiality"]
+
+    Readable --> JWSRule["Use JWS when the API must verify integrity<br/>but token contents do not need to be hidden"]
+    Hidden --> JWERule["Use JWE when token contents<br/>must be confidential"]

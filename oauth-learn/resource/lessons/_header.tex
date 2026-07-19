@@ -1,0 +1,60 @@
+% =====================================================================
+%  Shared LaTeX header for OAuth/JWT/FAPI workshop lesson PDFs
+%  Used by: make pdf  (pandoc --include-in-header=_header.tex)
+%  Engine-agnostic: works with tectonic (XeTeX) and xelatex.
+%  Provides:
+%    1. \makelessoncover{<number>}{<full title>}  — branded cover page
+%    2. A running footer (workshop name + page number) on content pages
+% =====================================================================
+
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+
+% --- Brand palette (matches the slide decks) ---
+\definecolor{brandink}{HTML}{1F3A5F}     % deep slate blue
+\definecolor{brandaccent}{HTML}{0F8A7E}  % teal
+\definecolor{brandgrey}{HTML}{5A6B7B}    % muted grey
+
+% --- Footer line text; overwritten by the cover macro per lesson ---
+\newcommand{\lessonfootline}{OAuth 2.0 {\textperiodcentered} JWT/JOSE {\textperiodcentered} FAPI 2.0 Workshop}
+
+% --- Cover page: #1 = lesson number, #2 = full lesson title ---
+\newcommand{\makelessoncover}[2]{%
+  \global\def\lessonfootline{Lesson #1 {\textperiodcentered} OAuth 2.0 {\textperiodcentered} JWT/JOSE {\textperiodcentered} FAPI 2.0 Workshop}%
+  \begin{titlepage}
+    \thispagestyle{empty}%
+    \sffamily\raggedright
+    \vspace*{2.4cm}
+    {\color{brandaccent}\bfseries\large OAuth 2.0 {\textperiodcentered} JWT/JOSE {\textperiodcentered} FAPI 2.0 Workshop\par}
+    \vspace{0.5em}
+    {\color{brandink}\rule{\textwidth}{2.2pt}}\par
+    \vspace{2.2cm}
+    {\color{brandgrey}\Large Lesson #1\par}
+    \vspace{0.6cm}
+    {\color{brandink}\bfseries\fontsize{30}{36}\selectfont #2\par}
+    \vfill
+    {\color{brandink}\rule{\textwidth}{0.6pt}}\par
+    \vspace{0.5em}
+    {\color{brandgrey}Participant teaching material \quad{\textbar}\quad June 2026\par}
+  \end{titlepage}
+}
+
+% --- Running footer on all content pages ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[L]{\footnotesize\sffamily\color{brandgrey}\lessonfootline}
+\fancyfoot[R]{\footnotesize\sffamily\color{brandgrey}\thepage}
+
+% plain pages (e.g. first page after cover) should also use the footer
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0.4pt}%
+  \fancyfoot[L]{\footnotesize\sffamily\color{brandgrey}\lessonfootline}%
+  \fancyfoot[R]{\footnotesize\sffamily\color{brandgrey}\thepage}%
+}
+
+% Note: link coloring (colorlinks/urlcolor) is enabled via pandoc -V flags in
+% the Makefile so it is applied when hyperref loads. See `make pdf`.

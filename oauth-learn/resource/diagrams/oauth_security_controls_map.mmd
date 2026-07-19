@@ -1,0 +1,26 @@
+flowchart TD
+    Risk["OAuth weak points"]
+
+    Risk --> Front["Front-channel risks<br/>browser redirects, callback injection"]
+    Risk --> Token["Token risks<br/>leakage, replay, long lifetime"]
+    Risk --> Client["Client risks<br/>public client, leaked secret"]
+    Risk --> Request["Request/response tampering<br/>parameters changed in browser"]
+    Risk --> HighValue["High-value API risks<br/>payments, sensitive data, compliance"]
+
+    Front --> State["state"]
+    Front --> Redirect["Exact redirect URI matching"]
+    Front --> PKCE["PKCE"]
+
+    Token --> ShortLife["Short access-token lifetime"]
+    Token --> Rotation["Refresh token rotation"]
+    Token --> Sender["Sender-constrained tokens<br/>DPoP or mTLS"]
+
+    Client --> ClientAuth["Client authentication<br/>secret, private key JWT, mTLS"]
+    Client --> PublicRules["Public-client rules<br/>no embedded secrets"]
+
+    Request --> PAR["PAR"]
+    Request --> JAR["JAR"]
+    Request --> JARM["JARM"]
+
+    HighValue --> FAPI["FAPI 2.0 profile"]
+    HighValue --> Signing["Message signing when required"]

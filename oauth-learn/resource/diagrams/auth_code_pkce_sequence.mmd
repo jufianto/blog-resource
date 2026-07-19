@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant Client as Public Client
+    participant AS as Authorization Server
+    participant API as Resource Server API
+
+    Client->>Client: Create code_verifier
+    Client->>Client: Create code_challenge = BASE64URL(SHA256(code_verifier))
+    User->>Client: Start OAuth flow
+    Client->>Browser: Redirect to /authorize
+    Browser->>AS: GET /authorize<br/>code_challenge + code_challenge_method=S256 + state
+    AS->>User: Authenticate and ask consent
+    User->>AS: Approve access
+    AS->>Browser: Redirect to redirect_uri<br/>code + state
+    Browser->>Client: Callback with code + state
+    Client->>Client: Verify state
+    Client->>AS: POST /token<br/>code + redirect_uri + code_verifier
+    AS->>AS: Verify SHA256(code_verifier)<br/>matches stored code_challenge
+    AS->>Client: access_token
+    Client->>API: API request<br/>Authorization: Bearer access_token
+    API->>Client: Protected resource

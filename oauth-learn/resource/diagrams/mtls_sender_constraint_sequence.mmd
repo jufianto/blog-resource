@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant Client as Client<br/>with certificate
+    participant AS as Authorization Server
+    participant API as Resource Server API
+    participant Attacker
+
+    Client->>AS: Token request over mTLS<br/>client proves certificate possession
+    AS->>Client: Certificate-bound access token
+    Client->>API: API request over mTLS<br/>token + same certificate
+    API->>API: Validate token and certificate binding
+    API->>Client: Protected response
+    Attacker->>Attacker: Steals access token only
+    Attacker->>API: Tries replay without matching certificate
+    API->>Attacker: Rejects request

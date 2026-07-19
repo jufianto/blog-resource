@@ -1,0 +1,9 @@
+flowchart TD
+    FAPI["FAPI 2.0<br/>OAuth profile for high-value APIs"]
+
+    FAPI --> Attacker["Attacker Model<br/>web, network, and endpoint attackers"]
+    Attacker --> Profile["Security Profile<br/>strict OAuth configuration"]
+    Profile --> Controls["Core controls<br/>PAR, sender-constrained tokens,<br/>strong client auth, strict validation"]
+    Controls --> Signing["Message Signing<br/>payload integrity and evidence<br/>when the business case requires it"]
+    Signing --> Conformance["Conformance and audit evidence"]
+    Conformance --> Goal["Interoperable high-security baseline"]

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OAuth Core Model — Deck 1</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/white.min.css" id="theme">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+
+<style>
+:root{
+  --ink:#1f3a5f;        /* deep slate blue, matches roadmap headings */
+  --ink2:#2f5a8f;
+  --accent:#0f8a7e;     /* teal accent */
+  --warn:#c0492f;       /* risk / red */
+  --bg:#ffffff;
+  --soft:#eef3f8;
+  --soft2:#e4ecf4;
+  --line:#c8d4e0;
+  --muted:#5a6b7b;
+}
+.reveal{
+  font-family:"Helvetica Neue",Helvetica,Arial,"Segoe UI",sans-serif;
+  font-size:30px; color:#1d2733;
+}
+.reveal .slides{ text-align:left; }
+.reveal h1,.reveal h2,.reveal h3{ color:var(--ink); font-weight:700; letter-spacing:-.01em; text-transform:none; }
+.reveal h1{ font-size:2.0em; line-height:1.1; }
+.reveal h2{ font-size:1.5em; line-height:1.12; margin-bottom:.5em; }
+.reveal h3{ font-size:1.05em; color:var(--ink2); }
+.reveal p,.reveal li{ line-height:1.4; }
+.reveal strong{ color:var(--ink); }
+.reveal em{ color:var(--accent); font-style:normal; font-weight:600; }
+.reveal section{ top:6% !important; }
+
+/* kicker / eyebrow */
+.kicker{
+  display:inline-block; font-size:.55em; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:.4em;
+}
+.reveal .footer{
+  position:fixed; bottom:14px; left:26px; right:26px;
+  font-size:13px; color:var(--muted); display:flex; justify-content:space-between;
+  border-top:1px solid var(--line); padding-top:6px; letter-spacing:.02em;
+}
+
+/* title slide */
+.title-wrap{ height:100%; display:flex; flex-direction:column; justify-content:center; }
+.title-wrap h1{ margin:.1em 0; }
+.title-wrap .sub{ font-size:1.0em; color:var(--muted); margin-top:.3em; }
+.title-rule{ width:120px; height:5px; background:var(--accent); border-radius:3px; margin:.6em 0; }
+
+/* big idea */
+.bigidea{ font-size:1.25em; line-height:1.3; border-left:6px solid var(--accent);
+  padding:.2em 0 .2em .7em; color:var(--ink); }
+
+/* boxes / cards */
+.cards{ display:flex; gap:22px; margin-top:.4em; }
+.card{ flex:1; background:var(--soft); border:1px solid var(--line);
+  border-radius:12px; padding:18px 20px; }
+.card h3{ margin:0 0 .35em 0; }
+.card.bad{ background:#fbecea; border-color:#e6b6ac; }
+.card.bad h3{ color:var(--warn); }
+.card.good{ background:#e9f5f2; border-color:#a9d8cf; }
+.card.good h3{ color:var(--accent); }
+.card ul{ margin:.2em 0 0 0; }
+.card li{ font-size:.8em; margin:.25em 0; }
+
+/* tables */
+.reveal table{ font-size:.72em; border-collapse:collapse; width:100%; }
+.reveal table th{ background:var(--ink); color:#fff; padding:.5em .7em; text-align:left; font-weight:600; }
+.reveal table td{ padding:.5em .7em; border-bottom:1px solid var(--line); vertical-align:top; }
+.reveal table tr:nth-child(even) td{ background:var(--soft); }
+
+/* pills */
+.pill{ display:inline-block; background:var(--soft2); color:var(--ink);
+  border:1px solid var(--line); border-radius:999px; padding:.15em .7em;
+  font-size:.66em; font-weight:600; margin:.15em .2em; }
+.pill.accent{ background:#e9f5f2; border-color:#a9d8cf; color:var(--accent); }
+.pill.warn{ background:#fbecea; border-color:#e6b6ac; color:var(--warn); }
+
+/* code */
+.reveal pre{ box-shadow:none; border:1px solid var(--line); border-radius:10px;
+  width:100%; font-size:.6em; }
+.reveal pre code{ padding:16px 18px; border-radius:10px; max-height:none; }
+.codecap{ font-size:.6em; color:var(--muted); margin-top:.3em; }
+
+/* labels under diagram */
+.legend{ display:flex; gap:18px; margin-top:.5em; font-size:.62em; color:var(--muted); }
+.legend .dot{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
+
+.note{ font-size:.66em; color:var(--muted); margin-top:.5em; }
+.tag-front{ color:var(--warn); font-weight:700; }
+.tag-back{ color:var(--accent); font-weight:700; }
+
+.center{ text-align:center; }
+.q-list{ font-size:.9em; }
+.q-list li{ margin:.45em 0; }
+
+.svgwrap{ width:100%; display:flex; justify-content:center; }
+.svgwrap svg{ max-height:430px; width:auto; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- 1. TITLE -->
+<section data-background-color="#ffffff">
+  <div class="title-wrap">
+    <span class="kicker">Day 1 · Deck 1 of 3</span>
+    <h1>OAuth Starts<br>With a Problem</h1>
+    <div class="title-rule"></div>
+    <p class="sub">The core model: actors, endpoints, tokens, scopes, and consent —<br>before we touch a single line of JWT.</p>
+  </div>
+  <aside class="notes">
+    Goal of this deck: participants leave able to explain OAuth as delegated API access, identify the four actors,
+    and know where OpenID Connect begins. Repeat the one-line definition often. Do NOT start from JWT.
+  </aside>
+</section>
+
+<!-- 2. THE PROBLEM -->
+<section>
+  <span class="kicker">The problem</span>
+  <h2>Apps need to use <em>other apps' data</em></h2>
+  <p>A deployment dashboard wants to list your GitHub repos. Canva wants files from Google Drive. A Slack bot wants to post messages.</p>
+  <p class="bigidea">How does an app act on your behalf — without you handing over your password?</p>
+  <aside class="notes">
+    Anchor every example in everyday tools (GitHub, Drive, Slack, CLI) before banking. The question on screen is the
+    whole reason OAuth exists. Ask the room: "What would you have to give the dashboard today to make this work?"
+  </aside>
+</section>
+
+<!-- 3. PASSWORD SHARING IS THE WRONG SHAPE -->
+<section>
+  <span class="kicker">Why not just share the password?</span>
+  <h2>Password sharing is the wrong shape</h2>
+  <div class="cards">
+    <div class="card bad">
+      <h3>Give away the password</h3>
+      <ul>
+        <li>App can do <strong>everything</strong> you can do</li>
+        <li>App can store your password</li>
+        <li>No way to limit to one repo / one action</li>
+        <li>Revoking = change password (breaks everything)</li>
+        <li>App breached → your whole account is exposed</li>
+      </ul>
+    </div>
+    <div class="card good">
+      <h3>Give a scoped token</h3>
+      <ul>
+        <li>Limited to exactly what's needed</li>
+        <li>Password never leaves the trusted service</li>
+        <li>Scoped to one permission, e.g. <code>repo:read</code></li>
+        <li>Revoke just this app, anytime</li>
+        <li>Token expires on its own</li>
+      </ul>
+    </div>
+  </div>
+  <p class="note"><strong>OAuth's core move:</strong> the client receives <em>permission</em>, not the user's password.</p>
+  <aside class="notes">
+    The phrase "wrong shape" sticks: a password is too much power in the wrong place. The token is the right-sized
+    key. Everything else in OAuth exists to issue, scope, and validate that token safely.
+  </aside>
+</section>
+
+<!-- 4. FRAMEWORK / STANDARD / FLOW -->
+<section>
+  <span class="kicker">Vocabulary</span>
+  <h2>Framework, standard, flow</h2>
+  <p>People say "OAuth" to mean three different things. Keep them separate.</p>
+  <table>
+    <tr><th>Term</th><th>What it is</th><th>Example</th></tr>
+    <tr><td><strong>Framework</strong></td><td>The overall authorization model</td><td>Clients, tokens, scopes, grants, endpoints</td></tr>
+    <tr><td><strong>Standard / RFC</strong></td><td>The official spec</td><td>RFC 6749 defines OAuth 2.0</td></tr>
+    <tr><td><strong>Flow / grant</strong></td><td>One way to get a token</td><td>Authorization Code, Client Credentials, Device</td></tr>
+  </table>
+  <p class="bigidea" style="font-size:1.0em;margin-top:.5em">OAuth is the framework. RFCs define it. Flows are ways to use it.</p>
+  <aside class="notes">
+    This slide pre-empts a lot of confusion later. When someone says "is OAuth secure?", the answer depends on which
+    flow, which client type, and how tokens are handled — not on "OAuth" as a single thing.
+  </aside>
+</section>
+
+<!-- 5. SCENARIO -->
+<section>
+  <span class="kicker">Running example</span>
+  <h2>RepoBoard connects to GitHub</h2>
+  <p><strong>RepoBoard</strong> is a deployment dashboard. It wants to list your repositories — read-only.</p>
+  <ol style="font-size:.82em">
+    <li>You click <strong>Connect GitHub</strong> in RepoBoard.</li>
+    <li>RepoBoard sends you to <strong>GitHub</strong> to log in.</li>
+    <li>GitHub asks: "Allow RepoBoard to read your repositories?"</li>
+    <li>You approve. GitHub issues an <em>access token</em> to RepoBoard.</li>
+    <li>RepoBoard calls the GitHub API with that token.</li>
+  </ol>
+  <pre><code class="language-http">GET /user/repos
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+  <p class="note">RepoBoard never sees your GitHub password. We'll use RepoBoard for the whole workshop.</p>
+  <aside class="notes">
+    This is the same scenario as the Go demo app (client = repoboard-web). Tell participants we will literally run
+    this flow later. Keep the access token abstract for now — format comes much later.
+  </aside>
+</section>
+
+<!-- 6. FOUR ACTORS (SVG) -->
+<section>
+  <span class="kicker">The cast</span>
+  <h2>The four actors</h2>
+  <div class="svgwrap">
+    <svg viewBox="0 0 980 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OAuth four actors diagram">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L8,3 L0,6 Z" fill="#5a6b7b"/>
+        </marker>
+      </defs>
+      <!-- Resource Owner -->
+      <rect x="30" y="40" width="230" height="120" rx="14" fill="#eef3f8" stroke="#1f3a5f" stroke-width="2"/>
+      <text x="145" y="80" text-anchor="middle" font-size="22" font-weight="700" fill="#1f3a5f">Resource Owner</text>
+      <text x="145" y="112" text-anchor="middle" font-size="15" fill="#5a6b7b">You — the GitHub user</text>
+      <text x="145" y="134" text-anchor="middle" font-size="14" fill="#0f8a7e">owns the data</text>
+      <!-- Client -->
+      <rect x="30" y="250" width="230" height="120" rx="14" fill="#e9f5f2" stroke="#0f8a7e" stroke-width="2"/>
+      <text x="145" y="290" text-anchor="middle" font-size="22" font-weight="700" fill="#1f3a5f">Client</text>
+      <text x="145" y="322" text-anchor="middle" font-size="15" fill="#5a6b7b">RepoBoard dashboard</text>
+      <text x="145" y="344" text-anchor="middle" font-size="14" fill="#0f8a7e">wants access</text>
+      <!-- Authorization Server -->
+      <rect x="540" y="40" width="250" height="120" rx="14" fill="#eef3f8" stroke="#1f3a5f" stroke-width="2"/>
+      <text x="665" y="80" text-anchor="middle" font-size="22" font-weight="700" fill="#1f3a5f">Authorization Server</text>
+      <text x="665" y="112" text-anchor="middle" font-size="15" fill="#5a6b7b">GitHub login + consent</text>
+      <text x="665" y="134" text-anchor="middle" font-size="14" fill="#0f8a7e">authenticates · issues tokens</text>
+      <!-- Resource Server -->
+      <rect x="540" y="250" width="250" height="120" rx="14" fill="#eef3f8" stroke="#1f3a5f" stroke-width="2"/>
+      <text x="665" y="290" text-anchor="middle" font-size="22" font-weight="700" fill="#1f3a5f">Resource Server</text>
+      <text x="665" y="322" text-anchor="middle" font-size="15" fill="#5a6b7b">GitHub API</text>
+      <text x="665" y="344" text-anchor="middle" font-size="14" fill="#0f8a7e">validates tokens · serves data</text>
+
+      <!-- arrows -->
+      <line x1="145" y1="160" x2="145" y2="248" stroke="#5a6b7b" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="155" y="208" font-size="13" fill="#5a6b7b">uses</text>
+
+      <line x1="260" y1="300" x2="538" y2="120" stroke="#5a6b7b" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="360" y="195" font-size="13" fill="#5a6b7b">1. asks for access</text>
+
+      <line x1="665" y1="160" x2="665" y2="248" stroke="#5a6b7b" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="675" y="208" font-size="13" fill="#5a6b7b">trusts tokens from</text>
+
+      <line x1="260" y1="320" x2="538" y2="320" stroke="#0f8a7e" stroke-width="2.5" marker-end="url(#arrow)"/>
+      <text x="330" y="310" font-size="13" fill="#0f8a7e">2. calls API with token</text>
+
+      <line x1="540" y1="80" x2="262" y2="80" stroke="#5a6b7b" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="320" y="70" font-size="13" fill="#5a6b7b">logs in here</text>
+    </svg>
+  </div>
+  <p class="note">Identify them by asking: <strong>Who owns the data? Who wants access? Who grants it? Who serves the API?</strong></p>
+  <aside class="notes">
+    Drill this until automatic. In the Go demo these map to /client/* (Client), /authorize + /token (Auth Server),
+    and /api/* (Resource Server). The four questions are the participant's portable tool for any new scenario.
+  </aside>
+</section>
+
+<!-- 7. ENDPOINTS -->
+<section>
+  <span class="kicker">Where requests go</span>
+  <h2>Two endpoints do the real work</h2>
+  <table>
+    <tr><th>Endpoint</th><th>Job</th><th>Who calls it</th></tr>
+    <tr><td><strong>/authorize</strong></td><td>User logs in &amp; approves access</td><td>The <span class="tag-front">browser</span> (front-channel)</td></tr>
+    <tr><td><strong>/token</strong></td><td>Exchange a grant for an access token</td><td>The <span class="tag-back">client server</span> (back-channel)</td></tr>
+  </table>
+  <p style="font-size:.8em;margin-top:.5em">Supporting endpoints you'll meet later:</p>
+  <p>
+    <span class="pill">/.well-known metadata</span>
+    <span class="pill">/introspect</span>
+    <span class="pill">/revoke</span>
+  </p>
+  <p class="note"><span class="tag-front">Front-channel</span> = through the browser, more exposed. <span class="tag-back">Back-channel</span> = server-to-server, more protected. Remember which is which — it drives every security decision.</p>
+  <aside class="notes">
+    Plant the front-channel vs back-channel idea now; it returns in PKCE, in security controls, and in FAPI. The whole
+    of OAuth security is about not letting valuable secrets travel through the exposed front-channel.
+  </aside>
+</section>
+
+<!-- 8. ACCESS TOKEN -->
+<section>
+  <span class="kicker">The token</span>
+  <h2>What the access token <em>means</em></h2>
+  <div class="cards">
+    <div class="card good">
+      <h3>It IS</h3>
+      <ul>
+        <li>A credential the client sends to the API</li>
+        <li>Proof of <strong>permission</strong></li>
+        <li>Scoped, expiring, revocable</li>
+        <li>Checked by the resource server on every call</li>
+      </ul>
+    </div>
+    <div class="card bad">
+      <h3>It is NOT</h3>
+      <ul>
+        <li>The user's password</li>
+        <li>Proof of <strong>who</strong> the user is (that's the ID token, later)</li>
+        <li>Automatically a JWT</li>
+        <li>Safe to leak — it's a bearer credential</li>
+      </ul>
+    </div>
+  </div>
+  <pre><code class="language-http">GET /user/repos
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+  <aside class="notes">
+    "The access token represents permission, not the user's password" — say it out loud and have the room repeat it.
+    Resist any question about token format here; that is Deck 4. Today the token is an opaque permission slip.
+  </aside>
+</section>
+
+<!-- 9. SCOPE -->
+<section>
+  <span class="kicker">Scope</span>
+  <h2>Scope limits what the client may ask for</h2>
+  <p>Scope is the <em>size of the key</em>. Ask for the minimum — <strong>least privilege</strong>.</p>
+  <p>
+    <span class="pill accent">repo:read</span>
+    <span class="pill accent">repo:write</span>
+    <span class="pill accent">read:calendar</span>
+    <span class="pill accent">write:message</span>
+    <span class="pill accent">read:balance</span>
+  </p>
+  <p class="bigidea" style="font-size:1.0em">RepoBoard only needs <span class="pill accent">repo:read</span> — so that's all it should request. Asking for <span class="pill warn">repo:write</span> would be over-reach.</p>
+  <aside class="notes">
+    Tie scope back to the "wrong shape" slide: scope is exactly the mechanism that makes the token the right size.
+    Good question for the room: "What's the blast radius if RepoBoard's token leaks with repo:read vs admin?"
+  </aside>
+</section>
+
+<!-- 10. AUDIENCE -->
+<section>
+  <span class="kicker">Audience</span>
+  <h2>Audience says <em>which API</em> the token is for</h2>
+  <div class="svgwrap">
+    <svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Token audience diagram">
+      <defs>
+        <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L8,3 L0,6 Z" fill="#5a6b7b"/>
+        </marker>
+      </defs>
+      <rect x="20" y="90" width="180" height="70" rx="12" fill="#e9f5f2" stroke="#0f8a7e" stroke-width="2"/>
+      <text x="110" y="132" text-anchor="middle" font-size="18" font-weight="700" fill="#1f3a5f">Client</text>
+
+      <rect x="350" y="40" width="200" height="60" rx="12" fill="#eef3f8" stroke="#1f3a5f" stroke-width="2"/>
+      <text x="450" y="77" text-anchor="middle" font-size="16" font-weight="700" fill="#1f3a5f">GitHub API ✓</text>
+      <rect x="350" y="150" width="200" height="60" rx="12" fill="#fbecea" stroke="#c0492f" stroke-width="2"/>
+      <text x="450" y="180" text-anchor="middle" font-size="16" font-weight="700" fill="#c0492f">Payments API ✗</text>
+      <text x="450" y="200" text-anchor="middle" font-size="12" fill="#c0492f">rejects: wrong audience</text>
+
+      <line x1="200" y1="115" x2="348" y2="72" stroke="#0f8a7e" stroke-width="2.5" marker-end="url(#arrow2)"/>
+      <text x="225" y="80" font-size="12" fill="#0f8a7e">aud = github-api</text>
+      <line x1="200" y1="135" x2="348" y2="178" stroke="#c0492f" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow2)"/>
+
+      <rect x="650" y="90" width="230" height="70" rx="12" fill="#eef3f8" stroke="#1f3a5f" stroke-width="2"/>
+      <text x="765" y="123" text-anchor="middle" font-size="14" fill="#5a6b7b">Each API checks:</text>
+      <text x="765" y="145" text-anchor="middle" font-size="14" fill="#1f3a5f">"Is this token for me?"</text>
+    </svg>
+  </div>
+  <p class="note">A token minted for the GitHub API must not be accepted by a payments API. <strong>Audience</strong> binds the token to its intended resource server — a key check we'll formalize in token validation.</p>
+  <aside class="notes">
+    Audience prevents token "confused deputy" reuse across APIs. Don't over-explain validation here; just seed the idea
+    that the resource server must confirm the token was meant for it. Full validation checklist is Deck 4.
+  </aside>
+</section>
+
+<!-- 11. CONSENT -->
+<section>
+  <span class="kicker">Consent</span>
+  <h2>The user approves limited access</h2>
+  <div style="display:flex;gap:28px;align-items:center">
+    <div style="flex:0 0 360px">
+      <div style="border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(31,58,95,.12)">
+        <div style="background:var(--ink);color:#fff;padding:12px 16px;font-size:.6em">github.com · Authorize RepoBoard</div>
+        <div style="padding:18px 18px;font-size:.62em">
+          <p style="margin:.1em 0"><strong>RepoBoard</strong> would like to:</p>
+          <p style="margin:.5em 0"><span class="pill accent">Read your repositories</span></p>
+          <p style="color:var(--muted);margin:.4em 0">Signed in as <strong>@alya</strong></p>
+          <div style="display:flex;gap:10px;margin-top:14px">
+            <span style="background:var(--accent);color:#fff;border-radius:8px;padding:8px 18px;font-weight:600">Authorize</span>
+            <span style="background:var(--soft2);color:var(--ink);border-radius:8px;padding:8px 18px">Cancel</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1">
+      <ul style="font-size:.82em">
+        <li>Consent happens <strong>on the authorization server</strong>, not in the client.</li>
+        <li>The user sees exactly which scopes are requested.</li>
+        <li>Approve or deny — the user stays in control.</li>
+        <li>Machine-to-machine flows often have <strong>no consent screen</strong>.</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    Consent is a user-delegated concept. Foreshadow Client Credentials (Deck 3): no human, no consent screen — the
+    token represents the service itself. That contrast lands better once they've seen the consent screen here.
+  </aside>
+</section>
+
+<!-- 12. OAUTH vs OIDC -->
+<section>
+  <span class="kicker">The boundary that confuses everyone</span>
+  <h2>OAuth vs OpenID Connect</h2>
+  <table>
+    <tr><th></th><th>OAuth 2.0</th><th>OpenID Connect</th></tr>
+    <tr><td><strong>Purpose</strong></td><td>Authorization</td><td>Authentication</td></tr>
+    <tr><td><strong>Question</strong></td><td>What can this client access?</td><td>Who is the user?</td></tr>
+    <tr><td><strong>Main token</strong></td><td>Access token</td><td>ID token</td></tr>
+    <tr><td><strong>Example</strong></td><td>Connect GitHub repos / Drive files</td><td>"Log in with Google"</td></tr>
+  </table>
+  <p class="bigidea" style="font-size:1.0em;margin-top:.5em">Wants to <em>call an API</em>? → OAuth. Wants to know <em>who you are</em>? → OpenID Connect.</p>
+  <p class="note">Many products do both: sign you in (OIDC) <em>and</em> request API permissions (OAuth).</p>
+  <aside class="notes">
+    The single most common confusion in the whole course. "Login with Google" feels like OAuth but is really OIDC.
+    The demo app uses go-oidc and can issue an ID token — we'll point that out when we extend it.
+  </aside>
+</section>
+
+<!-- 13. PUBLIC vs CONFIDENTIAL -->
+<section>
+  <span class="kicker">Client types</span>
+  <h2>Can the client keep a secret?</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Public client</h3>
+      <ul>
+        <li>Cannot safely store a secret</li>
+        <li>Browser SPA, mobile app, CLI</li>
+        <li>Needs <strong>PKCE</strong> (Deck 2)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Confidential client</h3>
+      <ul>
+        <li>Can keep a secret / private key</li>
+        <li>Server-side web app, backend service</li>
+        <li>Authenticates at <code>/token</code></li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">This one question — "can it keep a secret?" — decides how a client authenticates and which protections it needs.</p>
+  <aside class="notes">
+    In the Go demo: repoboard-web and deploy-cli are public; order-service is confidential. Connect this slide to the
+    demo's three registered clients. It sets up exactly why PKCE exists in the next deck.
+  </aside>
+</section>
+
+<!-- 14. CONFIG WALKTHROUGH -->
+<section>
+  <span class="kicker">Implementation walkthrough</span>
+  <h2>One config reveals every actor</h2>
+  <pre><code class="language-bash">CLIENT_ID=repoboard-web
+AUTHORIZATION_ENDPOINT=https://github.com/login/oauth/authorize
+TOKEN_ENDPOINT=https://github.com/login/oauth/access_token
+RESOURCE_API=https://api.github.com
+REDIRECT_URI=https://repoboard.example.com/oauth/callback
+SCOPES=repo:read</code></pre>
+  <ul style="font-size:.72em;margin-top:.3em">
+    <li><code>CLIENT_ID</code> → the <strong>Client</strong></li>
+    <li><code>AUTHORIZATION_ENDPOINT</code> + <code>TOKEN_ENDPOINT</code> → the <strong>Authorization Server</strong></li>
+    <li><code>RESOURCE_API</code> → the <strong>Resource Server</strong></li>
+    <li><code>SCOPES</code> → requested permission · <code>REDIRECT_URI</code> → where the browser returns</li>
+  </ul>
+  <aside class="notes">
+    Read the config line by line with the room and have them name the actor each line belongs to. This is the bridge
+    into the live Go demo, whose config looks just like this.
+  </aside>
+</section>
+
+<!-- 15. CHECKPOINT -->
+<section data-background-color="#1f3a5f">
+  <span class="kicker" style="color:#7fd9cd">Checkpoint · Lab 1</span>
+  <h2 style="color:#fff">Map the actors</h2>
+  <p style="color:#dce7f2">For each scenario name the <strong style="color:#fff">Resource Owner, Client, Authorization Server, Resource Server</strong>:</p>
+  <ol class="q-list" style="color:#eef3f8">
+    <li>Canva imports photos from Google Drive</li>
+    <li>A VS Code extension creates GitHub issues</li>
+    <li>A Slack bot reads channel messages</li>
+    <li>A CI pipeline pulls packages from a private registry</li>
+    <li>A mobile app connects to Fitbit health data</li>
+  </ol>
+  <p class="note" style="color:#9fb6cc">Discuss before revealing answers. Watch for the OIDC trap: which of these is really about <em style="color:#7fd9cd">identity</em>?</p>
+  <aside class="notes">
+    Let participants struggle for a minute each. #4 has no human resource owner (the org/system owns it) — great
+    discussion point. None of these is primarily login, so none is OIDC — but ask anyway to test the boundary.
+  </aside>
+</section>
+
+<!-- 16. SUMMARY -->
+<section>
+  <span class="kicker">Recap</span>
+  <h2>The mental model in four questions</h2>
+  <table>
+    <tr><th>Question</th><th>RepoBoard answer</th></tr>
+    <tr><td>Who <strong>asks</strong> for access?</td><td>The Client (RepoBoard)</td></tr>
+    <tr><td>Who <strong>approves</strong>?</td><td>The Resource Owner (you), at the Authorization Server</td></tr>
+    <tr><td>Who <strong>issues</strong> the token?</td><td>The Authorization Server (GitHub)</td></tr>
+    <tr><td>Who <strong>validates</strong> it?</td><td>The Resource Server (GitHub API)</td></tr>
+  </table>
+  <p class="bigidea" style="margin-top:.5em">OAuth lets an app access an API with limited permission — <em>without ever receiving the user's password.</em></p>
+  <p class="note">Next: <strong>Deck 2 — Authorization Code + PKCE</strong>, where we trace exactly how the token is obtained.</p>
+  <aside class="notes">
+    Definition of done for this deck: a participant can explain OAuth in two minutes without saying "JWT", and can
+    answer the four questions for any scenario. If they can, move on.
+  </aside>
+</section>
+
+<div class="footer"><span>OAuth 2.0 · Core Model</span><span>Day 1 — Deck 1</span></div>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/highlight.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, slideNumber:'c/t', controls:true, progress:true,
+  transition:'slide', width:1280, height:720, margin:0.06,
+  plugins:[RevealNotes, RevealHighlight]
+});
+</script>
+</body>
+</html>

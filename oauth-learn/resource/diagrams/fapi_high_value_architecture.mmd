@@ -1,0 +1,21 @@
+flowchart TD
+    Start["Client prepares high-value request"]
+    PAR["Back-channel PAR<br/>send request details to authorization server"]
+    Redirect["Front-channel redirect<br/>browser carries request_uri"]
+    Consent["User authenticates and authorizes<br/>at authorization server"]
+    Response["Client receives code<br/>or signed authorization response"]
+    Token["Token request<br/>strong client authentication or sender proof"]
+    BoundToken["Sender-constrained access token"]
+    API["API request<br/>token plus DPoP proof or mTLS certificate"]
+    Validate["Resource server validates<br/>token, audience, scope, sender proof, signature"]
+    Audit["Audit and compliance evidence"]
+
+    Start --> PAR
+    PAR --> Redirect
+    Redirect --> Consent
+    Consent --> Response
+    Response --> Token
+    Token --> BoundToken
+    BoundToken --> API
+    API --> Validate
+    Validate --> Audit

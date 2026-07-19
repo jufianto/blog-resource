@@ -1,0 +1,26 @@
+sequenceDiagram
+    autonumber
+    participant Client as Client App
+    participant API as Resource Server API
+    participant AS as Authorization Server
+    participant JWKS as JWKS Endpoint
+    participant Introspect as Introspection Endpoint
+
+    Client->>API: API request<br/>Authorization: Bearer access_token
+    API->>API: Extract token from Authorization header
+    alt JWT access token
+        API->>API: Decode header and payload
+        API->>JWKS: Fetch signing keys if needed
+        JWKS->>API: Return public keys
+        API->>API: Validate signature, iss, aud, exp, nbf,<br/>scope, token type, and trusted key
+    else Opaque token
+        API->>Introspect: POST token to introspection endpoint
+        Introspect->>AS: Check token status and metadata
+        AS->>Introspect: Token active/inactive + claims
+        Introspect->>API: Introspection response
+    end
+    alt Token valid and scope is enough
+        API->>Client: Return protected resource
+    else Token invalid or insufficient
+        API->>Client: 401 Unauthorized or 403 Forbidden
+    end

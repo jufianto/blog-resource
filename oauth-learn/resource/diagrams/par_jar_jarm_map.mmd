@@ -1,0 +1,14 @@
+flowchart TD
+    Request["OAuth authorization request / response"]
+
+    Request --> PAR["PAR<br/>Pushed Authorization Requests"]
+    Request --> JAR["JAR<br/>JWT-Secured Authorization Request"]
+    Request --> JARM["JARM<br/>JWT-Secured Authorization Response Mode"]
+
+    PAR --> PARGoal["Move request details to a protected back-channel<br/>Browser carries request_uri"]
+    JAR --> JARGoal["Sign authorization request parameters<br/>Detect request tampering"]
+    JARM --> JARMGoal["Package authorization response as JWT<br/>Sign and optionally encrypt response"]
+
+    PARGoal --> Browser["Less sensitive detail in browser/front-channel"]
+    JARGoal --> Integrity["Request integrity"]
+    JARMGoal --> ResponseIntegrity["Response integrity, issuer/audience binding,<br/>mix-up protection"]

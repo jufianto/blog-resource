@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant Device as Limited-Input Device<br/>CLI / TV
+    participant AS as Authorization Server
+    participant Browser as Browser on Another Device
+    participant API as Resource Server API
+
+    Device->>AS: POST /device_authorization<br/>client_id, scope
+    AS->>Device: device_code, user_code,<br/>verification_uri, interval, expires_in
+    Device->>User: Show user_code and verification_uri
+    User->>Browser: Open verification_uri<br/>and enter user_code
+    Browser->>AS: User authenticates<br/>and approves access
+    loop Poll until approved or expired
+        Device->>AS: POST /token<br/>grant_type=device_code<br/>device_code
+        AS->>Device: authorization_pending<br/>or slow_down<br/>or tokens
+    end
+    AS->>Device: access_token<br/>optional refresh_token
+    Device->>API: API request<br/>Authorization: Bearer access_token
+    API->>Device: Protected response

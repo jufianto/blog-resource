@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant Client as Client App
+    participant AS as Authorization Server
+    participant API as Resource Server API
+
+    User->>Client: Click Connect
+    Client->>Browser: Redirect to /authorize
+    Browser->>AS: GET /authorize<br/>response_type=code, client_id, redirect_uri, scope, state
+    AS->>User: Authenticate and ask consent
+    User->>AS: Approve access
+    AS->>Browser: Redirect to redirect_uri<br/>code + state
+    Browser->>Client: Callback with code + state
+    Client->>Client: Verify state
+    Client->>AS: POST /token<br/>code + redirect_uri + client authentication
+    AS->>Client: access_token
+    Client->>API: API request<br/>Authorization: Bearer access_token
+    API->>Client: Protected resource

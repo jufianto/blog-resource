@@ -1,0 +1,10 @@
+flowchart TD
+    U["You<br/>GitHub User"]
+    App["Deployment Dashboard<br/>Client"]
+    GitHubAuth["GitHub Authorization Server"]
+    GitHubAPI["GitHub API<br/>Resource Server"]
+
+    App -->|"1. Redirect to GitHub"| U
+    U -->|"2. Login and approve repo access"| GitHubAuth
+    GitHubAuth -->|"3. Access token"| App
+    App -->|"4. GET /user/repos<br/>Authorization: Bearer token"| GitHubAPI
