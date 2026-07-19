@@ -8,7 +8,8 @@ A single runnable Go application that shows **three real OAuth 2.0 flows** side 
 go run .
 ```
 
-Then open **<http://localhost:8080/client>** in your browser.
+Then open **<http://localhost:8082>** in your browser. The app starts three servers —
+Authorization Server (`:8080`), Resource Server (`:8081`), and the Client you start from (`:8082`).
 
 > Requires Go 1.21+. No Docker. No external services. Everything runs in memory.
 

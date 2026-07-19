@@ -45,7 +45,10 @@ var (
 )
 
 func newProvider(store *MemoryStore) (*provider.Provider, error) {
-	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, fmt.Errorf("generating signing key: %w", err)
+	}
 	jwks := goidc.JSONWebKeySet{
 		Keys: []goidc.JSONWebKey{{
 			KeyID:     "key_id",
@@ -93,7 +96,9 @@ func newProvider(store *MemoryStore) (*provider.Provider, error) {
 		func(_ context.Context) (goidc.JSONWebKeySet, error) { return jwks, nil },
 		provider.WithStaticClients(clientRepoboard, clientOrderService, clientDeployCLI),
 		provider.WithAuthCodeGrant(store, goidc.ResponseTypeCode),
-		provider.WithPKCE(goidc.CodeChallengeMethodSHA256),
+		// PKCE is required (not just enabled): repoboard-web is a public client, and
+		// OAuth 2.1 mandates PKCE for public clients using the authorization code grant.
+		provider.WithPKCERequired(goidc.CodeChallengeMethodSHA256),
 		provider.WithRefreshTokenGrant(store),
 		provider.WithRefreshTokenRotation(),
 		provider.WithClientCredentialsGrant(),

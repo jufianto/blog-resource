@@ -211,7 +211,11 @@ func (c *ClientApp) ClientCredentials(w http.ResponseWriter, r *http.Request) {
 
 	req, _ := http.NewRequest(http.MethodGet, apiBaseURL+"/api/fraud-report", nil)
 	req.Header.Set("Authorization", "Bearer "+tr.AccessToken)
-	apiResp, _ := http.DefaultClient.Do(req)
+	apiResp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
 	defer apiResp.Body.Close()
 	b, _ := io.ReadAll(apiResp.Body)
 
@@ -277,7 +281,11 @@ func (c *ClientApp) DevicePoll(w http.ResponseWriter, r *http.Request) {
 
 	req, _ := http.NewRequest(http.MethodGet, apiBaseURL+"/api/deploy", nil)
 	req.Header.Set("Authorization", "Bearer "+tr.AccessToken)
-	apiResp, _ := http.DefaultClient.Do(req)
+	apiResp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
 	defer apiResp.Body.Close()
 	b, _ := io.ReadAll(apiResp.Body)
 
