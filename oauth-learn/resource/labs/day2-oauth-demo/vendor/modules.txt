@@ -1,0 +1,34 @@
+# github.com/go-jose/go-jose/v4 v4.1.4
+## explicit; go 1.24.0
+github.com/go-jose/go-jose/v4
+github.com/go-jose/go-jose/v4/cipher
+github.com/go-jose/go-jose/v4/json
+github.com/go-jose/go-jose/v4/jwt
+# github.com/google/uuid v1.6.0
+## explicit
+github.com/google/uuid
+# github.com/luikyv/go-oidc v0.20.0
+## explicit; go 1.25.0
+github.com/luikyv/go-oidc/internal/authorize
+github.com/luikyv/go-oidc/internal/client
+github.com/luikyv/go-oidc/internal/dcr
+github.com/luikyv/go-oidc/internal/discovery
+github.com/luikyv/go-oidc/internal/dpop
+github.com/luikyv/go-oidc/internal/federation
+github.com/luikyv/go-oidc/internal/hashutil
+github.com/luikyv/go-oidc/internal/joseutil
+github.com/luikyv/go-oidc/internal/logout
+github.com/luikyv/go-oidc/internal/oidc
+github.com/luikyv/go-oidc/internal/ssf
+github.com/luikyv/go-oidc/internal/storage
+github.com/luikyv/go-oidc/internal/strutil
+github.com/luikyv/go-oidc/internal/timeutil
+github.com/luikyv/go-oidc/internal/token
+github.com/luikyv/go-oidc/internal/userinfo
+github.com/luikyv/go-oidc/internal/vc
+github.com/luikyv/go-oidc/pkg/goidc
+github.com/luikyv/go-oidc/pkg/provider
+# golang.org/x/crypto v0.52.0
+## explicit; go 1.25.0
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
