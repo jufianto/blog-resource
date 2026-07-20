@@ -17,10 +17,13 @@ day2-oauth-demo/
 ├── internal/base/                  # shared: MemoryStore + web/PKCE/HTTP helpers
 └── cmd/
     ├── jwt-validation/             # Lessons 4–5  (DONE)
-    ├── dpop/                       # Lesson 7      (planned)
-    ├── par-jar/                    # Lesson 7      (planned)
-    └── fapi/                       # Lesson 8      (planned)
+    ├── dpop/                       # Lesson 7      (DONE)
+    ├── par-jar/                    # Lesson 7      (DONE)
+    └── fapi/                       # Lesson 8      (planned capstone)
 ```
+
+A participant lab guide covering the built examples is in `LAB.md`
+(build to PDF with `make lab2-pdf` from the `oauth-learn/` root).
 
 Run any example from the module root:
 
@@ -66,3 +69,33 @@ Discussion questions:
 > Note: this demo keeps validation to signature/issuer/expiry/scope to stay focused.
 > Audience (`aud`) binding and JWKS key **rotation** are natural extensions — the RS already
 > refetches the JWKS when it sees an unknown `kid`.
+
+## `cmd/dpop` — Lesson 7 (sender-constrained tokens)
+
+**The one idea:** the access token is bound to a key the client holds (`cnf.jkt`), so a
+stolen token is useless without the private key.
+
+- AS: `WithDPoP(goidc.RS256)` — binds the token to the DPoP proof key (`op.go`).
+- Client: generates its own key, sends a fresh DPoP proof on the token request and on each API
+  call (`proof.go`, `client.go`).
+- RS: validates the JWT locally, then validates the DPoP proof and that its key thumbprint
+  matches the token's `cnf.jkt` (`proof.go`, `rs.go`).
+- UI shows: `token_type: DPoP`; a correct call (token + proof) → 200; a **replay** as a plain
+  Bearer with no proof → 401.
+
+## `cmd/par-jar` — Lesson 7 (request hardening)
+
+**The one idea:** the authorization request is a **signed request object (JAR)** **pushed**
+to the AS back-channel first (**PAR**); the browser only carries an opaque `request_uri`.
+
+- AS: `WithPARRequired` + `WithJARRequired(goidc.RS256)`, and the client is registered with
+  its public JWKS so the AS can verify the signed request (`op.go`).
+- Client: signs the request object with its key (`request.go`), pushes it to `/par`, then
+  sends the browser to `/authorize` with the opaque `request_uri` (`client.go`).
+- UI shows the decoded signed request, the PAR response, and the clean `/authorize` URL. A
+  plain `/authorize` without PAR is rejected (`400`).
+
+## `cmd/fapi` — Lesson 8 (planned capstone)
+
+Combines PAR + PKCE + sender-constrained tokens (DPoP) + `private_key_jwt` client
+authentication under `WithProfile(goidc.ProfileFAPI2)`.

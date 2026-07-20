@@ -1,6 +1,6 @@
-.PHONY: all diagrams pdf lab-pdf clean-preview
+.PHONY: all diagrams pdf lab-pdf lab2-pdf clean-preview
 
-all: diagrams pdf lab-pdf
+all: diagrams pdf lab-pdf lab2-pdf
 
 diagrams:
 	@mkdir -p resource/diagrams/exported
@@ -21,6 +21,11 @@ lab-pdf:
 	@mkdir -p export/labs
 	@cd resource/labs/day1-go-oauth-demo && \
 		pandoc LAB.md --pdf-engine=tectonic -o "../../../export/labs/day1_go_oauth_demo_lab.pdf"
+
+lab2-pdf:
+	@mkdir -p export/labs
+	@cd resource/labs/day2-oauth-demo && \
+		pandoc LAB.md --pdf-engine=tectonic -o "../../../export/labs/day2_oauth_advanced_lab.pdf"
 
 clean-preview:
 	@rm -rf export/preview

@@ -158,6 +158,19 @@ func (s *MemoryStore) SessionByDeviceCode(_ context.Context, code string) (*goid
 	return nil, goidc.ErrNotFound
 }
 
+// SessionByPushedAuthReqID satisfies goidc.PARManager: the /authorize endpoint uses it to
+// resolve the session created by a pushed authorization request (PAR).
+func (s *MemoryStore) SessionByPushedAuthReqID(_ context.Context, id string) (*goidc.AuthnSession, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, sess := range s.sessions {
+		if sess.PushedAuthReqID == id {
+			return sess, nil
+		}
+	}
+	return nil, goidc.ErrNotFound
+}
+
 func (s *MemoryStore) GrantByDeviceCode(_ context.Context, code string) (*goidc.Grant, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
