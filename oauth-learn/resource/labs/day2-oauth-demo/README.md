@@ -19,7 +19,7 @@ day2-oauth-demo/
     ├── jwt-validation/             # Lessons 4–5  (DONE)
     ├── dpop/                       # Lesson 7      (DONE)
     ├── par-jar/                    # Lesson 7      (DONE)
-    └── fapi/                       # Lesson 8      (planned capstone)
+    └── fapi/                       # Lesson 8      (DONE — capstone)
 ```
 
 A participant lab guide covering the built examples is in `LAB.md`
@@ -95,7 +95,22 @@ to the AS back-channel first (**PAR**); the browser only carries an opaque `requ
 - UI shows the decoded signed request, the PAR response, and the clean `/authorize` URL. A
   plain `/authorize` without PAR is rejected (`400`).
 
-## `cmd/fapi` — Lesson 8 (planned capstone)
+## `cmd/fapi` — Lesson 8 (capstone)
 
-Combines PAR + PKCE + sender-constrained tokens (DPoP) + `private_key_jwt` client
-authentication under `WithProfile(goidc.ProfileFAPI2)`.
+**The one idea:** FAPI 2.0 is not one feature — it is a *profile* that requires several
+controls together, and `WithProfile(goidc.ProfileFAPI2)` rejects any non-compliant config.
+
+- AS: `WithProfile(ProfileFAPI2)` + `WithPARRequired` + `WithPKCERequired(S256)` +
+  `WithDPoPRequired` + `private_key_jwt` client auth + auth-code lifetime < 60s (`op.go`).
+- Client: authenticates with a signed `private_key_jwt` assertion (`assertion.go`), pushes the
+  request via PAR, and sends DPoP proofs on the token request and API calls
+  (`proof.go`, `client.go`).
+- RS: validates the JWT locally *and* the DPoP proof/binding (`rs.go`).
+- Verified end-to-end: PAR → authorize → `private_key_jwt` token exchange → DPoP-bound token →
+  API call `200`.
+
+## Not demonstrated as code (see the lesson papers)
+
+To keep each example focused, these Lesson 5/7 topics are covered in the papers but not as
+runnable demos here: **JARM** (signed authorization responses), **mTLS** sender-constraining
+(the DPoP alternative), and **JWE** (encrypted JOSE).

@@ -29,6 +29,7 @@ cd resource/labs/day2-oauth-demo
 go run ./cmd/jwt-validation     # Exercise 1
 go run ./cmd/dpop               # Exercise 2
 go run ./cmd/par-jar            # Exercise 3
+go run ./cmd/fapi               # Exercise 4
 ```
 
 Run one at a time (they share the same ports). Stop one with Ctrl-C before starting the next.
@@ -116,12 +117,50 @@ must carry a fresh **DPoP proof** signed by that key, so a stolen token alone is
 
 ---
 
+# Exercise 4 — FAPI 2.0 Capstone (Lesson 8)
+
+`go run ./cmd/fapi`
+
+**The idea:** the FAPI 2.0 baseline profile combines the controls above into one hardened
+configuration. `WithProfile(FAPI2)` makes the Authorization Server *reject* any setup that is
+not compliant, so this example is essentially the minimum FAPI 2.0 demands:
+`private_key_jwt` client authentication + PAR + PKCE (S256) + DPoP-sender-constrained tokens +
+short-lived authorization codes.
+
+## Steps
+
+1. **Assertion → PAR → authorize.** The page shows the decoded `private_key_jwt` client
+   assertion (the client authenticates with a signed JWT, no secret). It is pushed to `/par`,
+   and the browser continues with only an opaque `request_uri`.
+2. **Approve**, and the token is issued — note `"token_type": "DPoP"`. The client
+   authenticated with the assertion *and* proved possession of its DPoP key.
+3. **Call API** → `200`, "FAPI 2.0: JWT verified locally AND DPoP proof-of-possession
+   confirmed". Every layer — client auth, request integrity, sender-constraining — is active.
+
+## Questions
+
+- Which specific attack does each FAPI 2.0 control stop? Map `private_key_jwt`, PAR, PKCE, and
+  DPoP to a threat.
+- Why does FAPI forbid public clients and client secrets in favour of `private_key_jwt`?
+- FAPI 2.0 requires *sender-constrained* tokens (DPoP **or** mTLS). Why is a plain Bearer token
+  never acceptable for a high-value API?
+
+---
+
+# Paper-Only Topics (no runnable demo here)
+
+The lesson papers cover three more controls that these labs do not demonstrate as code, to
+keep each example focused. Point participants to the papers for:
+
+- **JARM** (JWT-Secured Authorization Response) — Lesson 7 §5.
+- **mTLS** sender-constraining — Lesson 7 §9 (an alternative to DPoP).
+- **JWE** (encrypted JOSE) — Lesson 5.
+
+---
+
 # Wrap-up Discussion
 
 - Map each control to the threat it addresses: JWT/JWKS validation, DPoP, PAR, JAR.
-- Which of these belong together in a hardened, high-value API? (This is the FAPI 2.0
-  capstone: PAR + PKCE + sender-constrained tokens + strong client authentication.)
-- For a system you work on, which of these would you adopt first, and why?
-
-> **Next:** the FAPI 2.0 capstone combines PAR, PKCE, DPoP, and `private_key_jwt` client
-> authentication under one strict profile.
+- Exercise 4 combined them into the FAPI 2.0 baseline. Which of these controls would you adopt
+  first on a system you work on, and why?
+- Where would mTLS be a better sender-constraining choice than DPoP, and vice versa?
