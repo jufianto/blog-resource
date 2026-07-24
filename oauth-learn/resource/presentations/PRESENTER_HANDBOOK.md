@@ -1,16 +1,38 @@
 # Presenter Handbook — OAuth 2.0 / JWT / FAPI Workshop
 
-> **Who this is for:** the person delivering the workshop. The `oauth_deck_*.md` scripts tell
-> you *what to say* on each slide. This handbook is everything else you need to actually stand
-> up and run the room without falling over — the demos, the timing, the questions, the words.
-> Read it once end-to-end before you present, then keep it open beside the deck on the day.
+> **Who this is for:** the person delivering the talk. The `oauth_deck_*.md` scripts tell you
+> *what to say* on each slide. This handbook is everything else you need to actually stand up
+> and deliver without falling over — the demos, the timing, the questions, the words. Read it
+> once end-to-end before you present, then keep it open beside the deck on the day.
 
-**What sits where**
-- **Slides (project this):** `export/presentations/oauth_complete_workshop_lessons_1_8.pdf` — 33 pages.
-- **Per-slide scripts (your lines):** `oauth_deck_1..8_*.md`, keyed to the PDF by page number + title.
-- **Handouts (give to participants):** the Lesson PDFs in `export/pdf/`.
-- **Labs (participants run):** `resource/labs/day1-go-oauth-demo/` and `resource/labs/day2-oauth-demo/`.
-- **This handbook:** how to run the demos, the clock, the Q&A, pronunciation, and lab facilitation.
+## Two ways to deliver this
+
+The goal is a **KubeCon-style talk**: sparse slides, and *you* run live demos as the payoff.
+Same material can run in two modes — pick one before you plan the clock (§2):
+
+- **Seminar / talk (default, KubeCon style):** you project the slides and **run the demos
+  yourself**; the audience watches. **No participant labs.** This is the goal.
+- **Hands-on workshop:** everything above, **plus** the audience runs the lab exercises on
+  their own laptops. Only this mode uses the lab exercises and the extra lab time in §2.
+
+> **The demo always stays.** Running a live demo (you, on stage) is what makes this KubeCon and
+> not a slideshow. What's *optional* is the **lab exercise** — the audience doing it themselves.
+> Demo = you run it, every time. Lab = audience runs it, workshop mode only.
+
+## What to open on the day (in order)
+
+1. **PROJECT — the slides:** `export/presentations/oauth_complete_workshop_lessons_1_8.pdf` (33
+   pages, full screen). *This is the talk.*
+2. **BESIDE YOU (not projected) — your lines:** the deck script for the lesson you're on,
+   `oauth_deck_N.md`. Each `### Page N` heading is the slide on screen, with what to say.
+3. **A TERMINAL — the live demo:** switch to it when the script says "run the example." See the
+   demo runbook (§4). This is the KubeCon payoff.
+4. **STANDBY, don't project — deeper detail:** the matching **Lesson PDF** in `export/pdf/`. Open
+   only if a question needs more than the slide gives (or hand it out as a takeaway).
+5. **STANDBY — this handbook:** pre-flight (§1), clock (§2), demo runbook (§4), Q&A (§7).
+
+**Workshop mode only — the labs:** `resource/labs/day1-go-oauth-demo/` and
+`resource/labs/day2-oauth-demo/` (with their `LAB.md`). Skip entirely for a seminar/talk.
 
 ---
 
@@ -37,6 +59,11 @@ Nothing rattles a junior like a broken laptop at 9:00. Run this 30 minutes early
 Times are **durations** — shift the start to match your room. Teaching time comes from the deck
 scripts; labs and breaks are added here. Day 2 is long — if you're tight, the trim targets are
 marked ✂.
+
+> **Seminar mode:** drop the **Lab / Exercise** rows entirely — you still run each demo live (a
+> few minutes, inside the Deck block), the audience just doesn't run it themselves. That roughly
+> halves each day. **Shorter talk?** Pick a subset of decks — e.g. Decks 1–2 + a DPoP demo makes
+> a tight ~45-minute conference talk on their own.
 
 ### Day 1 — Core OAuth (Lessons 1–3, PDF pages 1–17)
 | Block | Mins | What |
