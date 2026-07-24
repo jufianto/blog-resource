@@ -1,59 +1,67 @@
-# Deck 6: OAuth Security Controls
+# Deck 6: OAuth Security Controls — Presenter Script
 
-**Workshop position**  
-Day 2, Session 3.
+> **How to use this:** open `export/presentations/oauth_complete_workshop_lessons_1_8.pdf`
+> and present. This walks the **actual slides in that PDF, in order** — each heading is the
+> slide's on-screen title. This session is threat-modeling, not a new demo — keep the room asking
+> "what leaks, and what stops it?" Dense detail = Lesson 6 paper (handout).
 
-**Source paper**  
-Lesson 6: OAuth Security Controls.
+**Slides:** PDF pages 24–26 · **Teach in:** Day 2, ~75 min (incl. threat-model discussion)
 
-**Estimated teaching time**  
-75 minutes including a threat-modeling discussion.
+## The one thing
+Every control exists to stop a **specific attack.** "We use OAuth" is not a security statement —
+say the *threat* before you name the *control*.
 
-# Teaching Goal
+---
 
-Participants should connect common OAuth attacks to the specific controls that stop them, and
-be able to threat-model a flow: what travels through the browser, what can leak, and which
-control closes each gap.
+## Walk the slides
 
-# Audience Assumption
+### Page 24 — Divider: "PART 06 · OAuth Security Controls"
+Nearly empty; reframe the room:
+> "People treat OAuth controls as a checklist of acronyms and can't say what any of them actually
+> *prevent*. That's how you tick every box and still get owned. Today we go the other way: start
+> from the attack, then reveal the control that kills it."
 
-Participants may know the controls as a checklist of acronyms without knowing which attack each
-one prevents. They may think "we use OAuth" is itself a security statement.
+### Page 25 — "Avoid Implicit and Password grant" (legacy flows)
+On screen: two red cards — **Implicit flow** and **Password credentials** — both bad.
+Say: "Two flows you'll still see in old code, both retired. **Implicit** returned tokens directly
+in the browser redirect — front-channel token exposure in history, logs, scripts. **Password
+grant** had the client collect the user's real password — it breaks the entire point of OAuth and
+blocks MFA." Land the slide line: "Use **Auth Code + PKCE** for users, **Client Credentials** for
+services."
 
-# Slide Outline
+### Page 26 — "Attacks mapped to mitigations" (threat model)
+On screen: the anchor table — attack/mistake on the left, mitigation on the right (missing state,
+weak redirect matching, code interception, long-lived tokens, refresh theft, bearer replay).
+Say: this is the slide participants photograph. Go **row by row as attack → defense**:
+> "Missing `state` → CSRF; generate and verify it. Loose redirect matching → open redirect;
+> exact pre-registered URIs. Code interception → PKCE. Long-lived token → short lifetimes.
+> Refresh theft → rotation + reuse detection. Bearer replay → sender-constrained tokens — which is
+> the whole next session."
+Note the last row is the bridge to Deck 7.
 
-| Slide | Type | Title | Main Teaching Point | Visual or Demo |
-|---:|---|---|---|---|
-| 1 | Opening | Controls Exist Because of Attacks | Every control answers a specific threat. | Title |
-| 2 | Concept | The Threat Surfaces | Front channel, back channel, token at rest, token in use. | Four surfaces |
-| 3 | Attack | Authorization Code Interception | Stolen code in the redirect. | Attack sketch |
-| 4 | Control | PKCE | The verifier the attacker never saw. | Recap from Day 1 |
-| 5 | Attack | CSRF on the Callback | Forged callback without `state`. | Attack sketch |
-| 6 | Control | `state` and `redirect_uri` | Bind and restrict the redirect. | Recap |
-| 7 | Attack | Token Leakage and Replay | A stolen bearer token just works. | Attack sketch |
-| 8 | Control | Sender-Constraining (preview) | DPoP/mTLS bind the token to a key — see Deck 7. | Forward pointer |
-| 9 | Diagram | Controls Map | Attacks mapped to controls. | `oauth_security_controls_map.png` |
-| 10 | Concept | Least Privilege: Scope and Audience | Narrow what a token can do and where. | Scope/aud |
-| 11 | Checkpoint | Threat-Model This Flow | Participants name leaks and matching controls. | Group exercise |
-| 12 | Summary | Attack → Control Mapping | Say the threat before naming the control. | Recap |
+---
 
-# Implementation Walkthrough Notes
+## Run the example (no new demo — point at what they've already seen)
+Don't spin up anything new; make the controls concrete by pointing back:
+- **Day 1 Go demo** — PKCE required, `state` checked on the callback.
+- **Day 2 `cmd/jwt-validation`** — local token validation, scope enforced, tamper → 401.
 
-This session is analysis, not a new demo. Reuse the Day 1 `day1-go-oauth-demo` and the Day 2
-`cmd/jwt-validation` to point at concrete controls already seen: PKCE required, `state` checked
-on the callback, local token validation. Sender-constraining (DPoP/mTLS) is previewed here and
-demonstrated in Deck 7. Keep the room in threat-modeling mode: for each step, ask "what leaks,
-and what stops it".
+For each step of a real flow, ask the room: **"What leaks here, and what stops it?"** Keep them in
+threat-modeling mode rather than lecturing. The last table row (bearer replay) sets up Deck 7.
 
-# Checkpoint Questions
+---
 
+## Say it like this
+> "A bearer token is a password-equivalent for as long as it's valid — which is exactly why the
+> next session's sender-constraining matters."
+
+Drive every point from the **attack first**, then reveal the control. Never lead with the acronym.
+
+## Check they got it
 1. An attacker intercepts the authorization code. Which control makes it useless, and why?
-2. What is the difference between restricting a token by scope and by audience?
-3. Which of today's controls would you add first to a legacy OAuth integration?
+2. What's the difference between restricting a token by **scope** and by **audience**?
+3. Which control would you add *first* to a legacy OAuth integration?
 
-# Speaker Notes
-
-The goal is to stop treating controls as a checklist. Drive every slide from the attack, then
-reveal the control. Emphasise that a bearer token is a password-equivalent while it is valid —
-which is exactly why Deck 7's sender-constraining matters. Use the controls map as the anchor
-diagram participants take away.
+## They can now
+Threat-model a flow: name what travels through the browser, what can leak at each step, and which
+control closes each gap.

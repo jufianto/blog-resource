@@ -11,3 +11,6 @@ CLAUDE.md
 oauth-learn/resource/labs/**/tmp/
 oauth-learn/resource/labs/day1-go-oauth-demo/day1-demo
 oauth-learn/resource/labs/day1-go-oauth-demo/day1-go-oauth-demo
+
+# Node deps for the presentation deck builder (installed on demand via `npm install`)
+oauth-learn/resource/presentations/node_modules/

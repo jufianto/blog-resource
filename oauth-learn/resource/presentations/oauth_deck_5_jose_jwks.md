@@ -1,58 +1,70 @@
-# Deck 5: JWS, JWE, JWK and JWKS
+# Deck 5: JWS, JWE, JWK and JWKS — Presenter Script
 
-**Workshop position**  
-Day 2, Session 2.
+> **How to use this:** open `export/presentations/oauth_complete_workshop_lessons_1_8.pdf`
+> and present. This walks the **actual slides in that PDF, in order** — each heading is the
+> slide's on-screen title. The live demo is a terminal you switch to at the marked point.
+> Dense detail = Lesson 5 paper (handout).
 
-**Source paper**  
-Lesson 5: JWS, JWE, JWK/JWKS.
+**Slides:** PDF pages 21–23 · **Teach in:** Day 2, ~75 min · demo = `cmd/jwt-validation`
 
-**Estimated teaching time**  
-75 minutes including JWKS validation and rotation.
+## The one thing
+JOSE is a **toolbox**, not one thing: **JWS signs, JWE encrypts, JWK/JWKS publish keys.** And
+**signed does not mean private.**
 
-# Teaching Goal
+---
 
-Participants should distinguish JWS (signing), JWE (encryption), and JWK/JWKS (key
-publication), and understand how a resource server finds the right key via `kid` and how key
-rotation works. Signed does not mean private.
+## Walk the slides
 
-# Audience Assumption
+### Page 21 — Divider: "PART 05 · JWS, JWE, JWK / JWKS"
+Nearly empty; open with the myth you're about to kill:
+> "Yesterday someone said 'the JWT is encrypted, so the secret's safe inside.' It is not. A
+> normal signed JWT is *readable by anyone* — signing proves who wrote it, it does **not** hide
+> it. Put a secret in a signed-only token and you've published the secret."
 
-Participants routinely conflate "signed" with "encrypted" and assume a JWT hides its contents.
-They may not know where the verifying key comes from or what happens when it changes.
+### Page 22 — "Five pieces that fit together" (the JOSE family)
+On screen: table — JWT (container), JWS (signature), JWE (encryption), JWK (one key), JWKS
+(published set).
+Say: "One family, different jobs. JWT is the envelope. JWS is the wax seal — proves it wasn't
+modified, still readable. JWE is the locked box — hides the contents. JWK is one key as JSON;
+JWKS is the public noticeboard of keys." Land the slide's line: "**JWS proves the content wasn't
+modified. JWE hides the content.**"
 
-# Slide Outline
+### Page 23 — "Where the verifier gets the key" (keys & rotation)
+On screen: **How verification works** (AS signs with private key → publishes public key in JWKS →
+RS fetches from trusted `jwks_uri` → selects by `kid` → verifies) next to **Common alg/kid
+mistakes** (red).
+Say: walk the four-step flow left-to-right. "The `kid` in the token header points at which key in
+the JWKS to use. When the RS sees an **unknown `kid`**, it refetches the JWKS — that refetch is
+the hook that makes **rotation** work: publish the new key first, sign with it later, retire the
+old one after old tokens expire." Then read the red card as the don't-do list: "never accept
+`alg: none`, never trust the token's algorithm, never fetch keys from a URL the token controls,
+never drop an old key too early." Land it: "**allowed algorithms and key sources come from
+configuration — never from the token.**"
 
-| Slide | Type | Title | Main Teaching Point | Visual or Demo |
-|---:|---|---|---|---|
-| 1 | Opening | JOSE Is a Toolbox, Not One Thing | Different jobs: sign, encrypt, publish keys. | Title |
-| 2 | Concept | JWS: Signing | Integrity + authenticity; contents still readable. | Definition |
-| 3 | Concept | JWE: Encryption | Confidentiality; contents hidden. | Definition |
-| 4 | Diagram | JWS vs JWE Side by Side | Signed ≠ private; choose by the threat. | `jws_jwe_comparison.png` |
-| 5 | Concept | JWK and JWKS | A JWK is one key; a JWKS is the published set. | Definition |
-| 6 | Concept | Finding the Key: `kid` | Token header `kid` selects the JWKS key. | Header → key mapping |
-| 7 | Diagram | JWKS Key Rotation | Old and new keys coexist; verifiers refetch by `kid`. | `jwks_key_rotation_sequence.png` |
-| 8 | Demo | Verify Against the JWKS | The RS fetched keys from `/jwks` and matched `kid`. | `cmd/jwt-validation` |
-| 9 | Concept | Rotation Without Downtime | Publish new key before signing with it; retire old later. | Timeline |
-| 10 | Risk | Encrypted vs Signed Confusion | A signed token leaks its claims if you put secrets in it. | Warning |
-| 11 | Checkpoint | Which JOSE Piece? | Match scenario → JWS, JWE, or JWKS. | Quiz |
-| 12 | Summary | Sign, Encrypt, Publish | JWS signs, JWE encrypts, JWKS publishes keys. | Recap |
+---
 
-# Implementation Walkthrough Notes
+## Run the example (after page 23)
+Reuse `cmd/jwt-validation`. In the browser open `http://localhost:8080/jwks` and show the
+published key set the resource server fetches. Point at:
+- the `kid` in the **token header** and the matching `kid` in the **JWKS** — that's key selection;
+- the refetch-on-unknown-`kid` behavior — that's what makes zero-downtime rotation possible.
 
-Reuse `cmd/jwt-validation`. Show `GET http://localhost:8080/jwks` — the published key set the
-resource server fetches. Point out the `kid` in the token header and the matching `kid` in the
-JWKS. Explain that when the RS sees an unknown `kid` it refetches the JWKS — the hook that makes
-rotation work. JWE is taught from the diagram (no runnable JWE demo in this module).
+(JWE has no runnable demo here — teach it from page 22. Point is just: same family, different job.)
 
-# Checkpoint Questions
+---
 
+## Say it like this
+> "JWS is a wax seal — you can read the letter, but you can't forge the seal. JWE is a locked box
+> — you can't read it at all. JWKS is the public noticeboard of seals. `kid` is the label saying
+> which seal to compare."
+
+Hammer the one sentence people get wrong: **a signed token still leaks its claims.**
+
+## Check they got it
 1. You must hide the token contents from the client. JWS or JWE?
 2. How does a resource server pick the correct key to verify a token?
-3. During rotation, why do the old and new keys both appear in the JWKS for a while?
+3. During rotation, why do old and new keys both appear in the JWKS for a while?
 
-# Speaker Notes
-
-The single most common mistake here is "it's a JWT so it's encrypted". Hammer the JWS/JWE
-split. Analogy: JWS is a wax seal (you can read the letter, but not forge the seal); JWE is a
-locked box (you cannot read it at all). JWKS is the public noticeboard of seals people can
-check against. `kid` is the label that says which seal to compare.
+## They can now
+Choose JWS vs JWE for a requirement, trace how a `kid` selects a JWKS key, and explain rotation
+without downtime.

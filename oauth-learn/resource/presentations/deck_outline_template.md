@@ -1,45 +1,43 @@
-# Presentation Outline Template
+# Deck N: <Title> — Presenter Script
 
-**Deck title**  
-Short title here.
+> **How to use this:** open `export/presentations/oauth_complete_workshop_lessons_1_8.pdf`
+> and present. This walks the **actual slides in that PDF, in order** — each heading is the
+> slide's on-screen title, so you always know where you are. The live demo is not a slide;
+> it's a terminal you switch to at the marked point. Dense detail lives in the Lesson N paper
+> (the participant handout).
 
-**Workshop position**  
-Day X, Session Y.
+**Slides:** PDF pages X–Y · **Teach in:** Day _, ~NN min · demo = `<cmd/...>`
 
-**Source paper**  
-Lesson N.
+## The one thing
+One sentence. If a participant remembers nothing else, this is it.
 
-**Estimated teaching time**  
-XX minutes.
+---
 
-# Teaching Goal
+## Walk the slides
 
-One paragraph describing what the deck must make clear.
+### Page X — Divider: "PART 0N · <title>"
+Nearly empty slide = your hook. Say the problem in plain words before any acronym.
 
-# Audience Assumption
+### Page X+1 — "<exact slide title>"
+On screen: what's actually drawn (cards / table / code panel).
+Say: the words to speak. Point at: the one line to land.
 
-Describe what participants already know and what they probably confuse.
+### Page X+2 — "<exact slide title>"
+...repeat for each real slide in the PDF...
 
-# Slide Outline
+---
 
-| Slide | Type | Title | Main Teaching Point | Visual or Demo |
-|---:|---|---|---|---|
-| 1 | Opening | Title | Why this topic matters | Simple title |
-| 2 | Concept |  |  |  |
-| 3 | Diagram |  |  |  |
-| 4 | Demo |  |  |  |
-| 5 | Checkpoint |  |  |  |
+## Run the example (after page __, folded into <Lab/Exercise>)
+Exact commands, what to point at, what the room sees happen. This is the payoff — keep the
+terminal + browser visible. Then hand off to the lab/exercise.
 
-# Implementation Walkthrough Notes
+## Say it like this
+The strongest lines and analogies. Repeat the one-liner.
 
-Describe what the instructor should show in terminal, browser, HTTP client, or code editor.
-
-# Checkpoint Questions
-
+## Check they got it
 1. Question.
 2. Question.
 3. Question.
 
-# Speaker Notes
-
-Add the strongest explanations, analogies, and warnings here.
+## They can now
+The concrete capability the participant walks away with.
