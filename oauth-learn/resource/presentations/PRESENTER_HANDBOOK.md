@@ -327,3 +327,56 @@ sentence, then move on** (or punt to the break).
 - **Pause after the money moment.** Let the 401 land. Silence is fine.
 - **You are the expert in the room.** You don't need every edge case — you need the mental model,
   which these scripts and demos give you. If you don't know, punt cleanly (§7) and follow up.
+
+---
+
+## 12. Appendix — the 45-minute conference-talk cut
+
+A ready-to-run KubeCon-shaped version: **one arc, ~8 slides, one live demo.** It runs off the
+**same** `oauth_complete_workshop_lessons_1_8.pdf` — you just show a subset of pages. No second
+deck to maintain.
+
+**The arc (one sentence):** *Your app has your password → OAuth hands out permission instead →
+but a token is a password while it's valid → so bind it to the client → watch a stolen token
+get refused.*
+
+**Working title:** *"Your app has your password. Let's fix that."*
+
+### The cut sheet — play these pages, in this order
+
+| # | PDF page | On screen | Beat | ~min |
+|---:|---:|---|---|---:|
+| 1 | **1** | Title (dark) | Hook: "almost every app you connect gets more than it needs." | 2 |
+| 2 | **5** | Password sharing is the wrong shape | The problem — make them feel it. | 5 |
+| 3 | **6** | The four actors | The model: permission, not password. | 5 |
+| 4 | **10** | Authorization Code, step by step | The main flow — code in the browser, token in the back-channel. | 6 |
+| 5 | **12** | Why PKCE (optional ✂) | First twist: a stolen *code* is stopped. Drop this if tight. | 3 |
+| 6 | **29** | DPoP vs mTLS | The real catch, said out loud → the fix. *(see script below)* | 5 |
+| 7 | — | **LIVE DEMO — `cmd/dpop`** | The payoff: valid call 200, replay 401. | 8 |
+| 8 | **33** | Closing checklist (or your one line) | Land the two ideas. | 3 |
+|  |  |  | **Q&A** | 7 |
+
+**The pivot line before page 29** (say it, no slide needed): *"Here's the catch. That access
+token is a **bearer** token — like cash, or a password. Whoever holds it can spend it. Steal it,
+replay it, you're in. So the fix isn't a better token — it's binding the token to the client that
+earned it."* → show page 29 → run the demo.
+
+### The one demo (full runbook in §4)
+`cd resource/labs/day2-oauth-demo && go run ./cmd/dpop` → `http://localhost:8082`.
+Do a correct call → **200** *"JWT verified locally AND DPoP proof-of-possession confirmed."* Then
+hit **`/replay`** (same token, plain bearer) → **401 "token rejected."** Pause. Let it land:
+*"The token that worked one second ago is refused the instant it's presented without the key."*
+
+### Closing line
+*"OAuth is 'permission, not password.' Sender-constraining is 'permission, and only from you.'
+Everything else — PAR, JAR, FAPI, the whole alphabet — is just how far you take those two ideas."*
+
+### Make it play as one clean deck
+So you don't visibly skip slides on stage, hide the unused pages in your presentation app:
+- **Keynote:** select the non-cut slides → **Slide ▸ Skip Slide**.
+- **PowerPoint:** select them → **Slide Show ▸ Hide Slide**.
+The cut then plays continuously; unhide to get the full workshop deck back.
+
+### If you're over time
+Drop page 12 (PKCE) first — the arc survives without it. Next, compress the flow (page 10) to
+"code out, token back, done." Never cut the demo; it *is* the talk.
